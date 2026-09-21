@@ -14,9 +14,54 @@ let eventoSeleccionado = '';
 let estadoSeleccionado = '';
 let mesSeleccionado = '';
 
-const EVENTOS_DISPONIBLES = ['Acto Subestandar', 'Condicion Subestandar'];
+// 🆕 Cada evento tiene:
+//    valor    → EXACTO como está en Supabase (sin tildes). NO TOCAR sin verificar BD.
+//    etiqueta → texto visible del botón (aquí sí van tildes)
+const EVENTOS_DISPONIBLES = [
+    { valor: 'Acto Subestandar',      etiqueta: 'Acto Subestándar'      },
+    { valor: 'Condicion Subestandar', etiqueta: 'Condición Subestándar' }
+];
+
 const ESTADOS_DISPONIBLES = ['Abierto', 'Cerrado'];
 const NOMBRE_ADMIN = 'Seguridad Industrial';
+
+// 🆕 Gerencias con acceso TOTAL (admin efectivos: ven todo y suben Excel)
+const GERENCIAS_ACCESO_TOTAL = [
+    'GERENCIA GENERAL',
+    'GERENCIA LEGAL Y RELAC LABORAL'
+];
+
+// 🆕 Años que NO deben mostrarse
+const ANIOS_EXCLUIDOS = ['2023'];
+
+// 🆕 Diccionario de correcciones ortográficas (solo visual)
+// key   → como está en la BD (mayúsculas, sin tildes)
+// value → como quieres mostrarlo
+const CORRECCIONES_ORTOGRAFICAS = {
+    'FABRICA':                        'FÁBRICA',
+    'ELABORACION':                    'ELABORACIÓN',
+    'ADMINISTRACION':                 'ADMINISTRACIÓN',
+    'PRODUCCION':                     'PRODUCCIÓN',
+    'LOGISTICA':                      'LOGÍSTICA',
+    'ALMACEN':                        'ALMACÉN',
+    'DESTILERIA':                     'DESTILERÍA',
+    'AGRICOLA':                       'AGRÍCOLA',
+    'ELECTRICO':                      'ELÉCTRICO',
+    'MECANICO':                       'MECÁNICO',
+    'QUIMICO':                        'QUÍMICO',
+    'INSTRUMENTACION':                'INSTRUMENTACIÓN',
+    'AUTOMATIZACION':                 'AUTOMATIZACIÓN',
+    'CERTIFICACION':                  'CERTIFICACIÓN',
+    'CAPACITACION':                   'CAPACITACIÓN',
+    'EVALUACION':                     'EVALUACIÓN',
+    'INSPECCION':                     'INSPECCIÓN',
+    'PREVENCION':                     'PREVENCIÓN',
+    'CORRECCION':                     'CORRECCIÓN',
+    'OPERACION':                      'OPERACIÓN',
+    'MANTENIMIENTO MECANICO':         'MANTENIMIENTO MECÁNICO',
+    'GERENCIA LEGAL Y RELAC LABORAL': 'GERENCIA LEGAL Y RELACIONES LABORALES',
+    // ⬆️ Agrega aquí todos los que necesites
+};
 
 Chart.register(ChartDataLabels);
 
@@ -24,7 +69,6 @@ Chart.register(ChartDataLabels);
 // 1. CONFIGURACIÓN
 // ==========================================
 const SUPABASE_URL = 'https://bfwyedbiguytlrooiglj.supabase.co';
-// ⚠️ IMPORTANTE: Esta es tu ANON KEY, no la Service Key. Es seguro tenerla aquí.
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmd3llZGJpZ3V5dGxyb29pZ2xqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2Nzc5MzAsImV4cCI6MjEwNTI1MzkzMH0.5m5ZzlZ88FONEp1NDwhLXts3YToEk1AIA-AaCW-R6RQ';
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -35,97 +79,181 @@ const MESES_CORTOS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct
 function nombreMes(n) { return MESES_NOMBRES[n] || ''; }
 
 // ==========================================
-// 2. FONDO ANIMADO: GENERADOR DE CAÑAVERAL
+// 1b. HELPERS DE PERMISOS, ORTOGRAFÍA Y EXCLUSIÓN
+// ==========================================
+
+// Normaliza texto: sin tildes, sin mayúsculas, sin espacios extra
+function normalizarTexto(s) {
+    return (s || '')
+        .toString()
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+}
+
+// ¿Es admin efectivo? (admin real, GG o Legal)
+function esAdminEfectivo() {
+    if (!usuarioActual) return false;
+    if (usuarioActual.esAdmin) return true;
+    const nombreNorm = normalizarTexto(usuarioActual.nombre);
+    return GERENCIAS_ACCESO_TOTAL.some(g => normalizarTexto(g) === nombreNorm);
+}
+
+function usuarioVeTodo() {
+    return esAdminEfectivo();
+}
+
+// Excluye los años prohibidos de cualquier query de Supabase
+function excluirAnios(q) {
+    ANIOS_EXCLUIDOS.forEach(a => {
+        q = q.not('"FECHA_ACONTECIMIENTO"', 'like', `%/${a}%`);
+    });
+    return q;
+}
+
+// 🆕 Devuelve el nombre "bonito" (con tildes) sin cambiar el valor real
+function embellecer(texto) {
+    if (!texto) return texto;
+    const key = texto.toString().trim().toUpperCase();
+    return CORRECCIONES_ORTOGRAFICAS[key] || texto;
+}
+
+// ==========================================
+// 2. FONDO ANIMADO: CAÑAVERAL REALISTA
 // ==========================================
 function generarCanaveral() {
     const cont = document.getElementById('canas');
     if (!cont) return;
     cont.innerHTML = '';
 
+    const esMovil = window.innerWidth < 768;
+    const totalBack = esMovil ? 15 : 25;
+    const totalFront = esMovil ? 30 : 55;
+
+    // Capa trasera (difusa)
+    for (let i = 0; i < totalBack; i++) {
+        cont.appendChild(crearCana(i, totalBack, true));
+    }
+    // Capa frontal
+    for (let i = 0; i < totalFront; i++) {
+        cont.appendChild(crearCana(i, totalFront, false));
+    }
+}
+
+function crearCana(index, total, esBack) {
+    const cana = document.createElement('div');
+    cana.className = 'cana' + (esBack ? ' cana-back' : '');
+
+    // Posición horizontal con un poco de desorden
+    const posBase = index / total;
+    const leftPct = posBase * 108 - 4 + (Math.random() * 3 - 1.5);
+    cana.style.left = leftPct + '%';
+
+    // Profundidad: capa trasera más baja, capa frontal más alta
+    const profundidad = esBack ? Math.random() * 0.35 : 0.35 + Math.random() * 0.65;
+    const altura = esBack ? 40 + profundidad * 25 : 55 + profundidad * 45;
+    cana.style.height = altura + '%';
+
+    // Velocidad del viento (más rápida al frente)
+    const dur = esBack ? 4.5 + Math.random() * 2 : 3 + Math.random() * 2;
+    cana.style.setProperty('--dur', dur.toFixed(2) + 's');
+    cana.style.setProperty('--delay', (-Math.random() * 4).toFixed(2) + 's');
+
+    // z-index por profundidad
+    cana.style.zIndex = esBack
+        ? String(Math.round(profundidad * 50))
+        : String(100 + Math.round(profundidad * 100));
+
+    // Generar el SVG
+    cana.innerHTML = generarSVGCana(index, esBack);
+    return cana;
+}
+
+function generarSVGCana(index, esBack) {
+    // Paleta de verdes (atardecer: cálidos y olivas)
     const paleta = [
-        ['#6b7d3a', '#3f4d1f'],
-        ['#7a8a42', '#4a5a28'],
-        ['#5e6f33', '#2f3a17'],
-        ['#88964a', '#556228'],
-        ['#4a5a28', '#2a3414'],
-        ['#9aa85a', '#5e6b30'],
+        { stalk: '#7A8838', leafA: '#8B9A45', leafB: '#4A5A20' },
+        { stalk: '#6B7833', leafA: '#7A8838', leafB: '#3D4A18' },
+        { stalk: '#889B48', leafA: '#A0B058', leafB: '#5E6F2A' },
+        { stalk: '#5E6B28', leafA: '#7A8838', leafB: '#2F3A17' },
+        { stalk: '#98A855', leafA: '#B0BE68', leafB: '#6B7D35' }
     ];
+    const col = paleta[Math.floor(Math.random() * paleta.length)];
 
-    const totalCanas = window.innerWidth < 768 ? 45 : 90;
+    const idStalk = `stalk_${index}_${esBack ? 'b' : 'f'}`;
+    const idLeaf = `leaf_${index}_${esBack ? 'b' : 'f'}`;
 
-    for (let i = 0; i < totalCanas; i++) {
-        const cana = document.createElement('div');
-        cana.className = 'cana';
+    // Altura donde termina el tallo
+    const topStalk = 60 + Math.random() * 80;
 
-        const leftPct = (i / totalCanas) * 105 - 2 + (Math.random() * 3 - 1.5);
-        cana.style.left = leftPct + '%';
+    // Hojas: entre 5 y 8, distribuidas a lo largo del tallo (más densas arriba)
+    const numHojas = 5 + Math.floor(Math.random() * 4);
+    let hojas = '';
 
-        const profundidad = Math.random();
-        const altura = 45 + profundidad * 55;
-        cana.style.height = altura + '%';
-
-        const dur = 3.2 + Math.random() * 2.5 - profundidad * 1.5;
-        cana.style.setProperty('--dur', dur.toFixed(2) + 's');
-        cana.style.setProperty('--delay', (-Math.random() * 3).toFixed(2) + 's');
-
-        cana.style.zIndex = String(Math.round(profundidad * 100));
-        cana.style.opacity = (0.55 + profundidad * 0.45).toFixed(2);
-
-        const [c1, c2] = paleta[Math.floor(Math.random() * paleta.length)];
-        const idGrad = 'g' + i;
-
-        const hojas = generarHojasSVG(profundidad);
-        cana.innerHTML = `
-            <svg viewBox="0 0 100 400" preserveAspectRatio="none">
-                <defs>
-                    <linearGradient id="${idGrad}" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="${c1}"/>
-                        <stop offset="100%" stop-color="${c2}"/>
-                    </linearGradient>
-                </defs>
-                <path d="M50,400 Q${50 + (Math.random()*6-3)},300 50,${40 + Math.random()*40}"
-                      stroke="url(#${idGrad})" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                ${hojas}
-            </svg>
-        `;
-
-        cont.appendChild(cana);
-    }
-}
-
-function generarHojasSVG(profundidad) {
-    const numHojas = 4 + Math.floor(Math.random() * 3);
-    let html = '';
     for (let h = 0; h < numHojas; h++) {
-        const y = 60 + h * 55 + Math.random() * 30;
-        const lado = h % 2 === 0 ? 1 : -1;
-        const largo = 30 + Math.random() * 35;
-        const curvatura = (Math.random() * 15 + 8) * lado;
-        const durHoja = (2.2 + Math.random() * 2).toFixed(2);
-        const delayHoja = (-Math.random() * 2).toFixed(2);
+        const frac = h / (numHojas - 1); // 0 arriba … 1 abajo
+        // Distribución: más juntas arriba
+        const y = topStalk + 20 + Math.pow(frac, 0.75) * (480 - topStalk - 20);
 
-        html += `
+        const dir = h % 2 === 0 ? 1 : -1;
+        const L = 22 + Math.random() * 22; // longitud de la hoja
+        const durHoja = (2 + Math.random() * 2).toFixed(2);
+        const delayHoja = (-Math.random() * 3).toFixed(2);
+
+        // Path de la hoja: arqueada, se eleva y luego cae en la punta
+        const x0 = 50;
+        const d = `
+            M ${x0},${y}
+            Q ${x0 + dir * L * 0.5},${y - L * 0.75} ${x0 + dir * L * 0.85},${y - L * 0.8}
+            Q ${x0 + dir * L * 1.05},${y - L * 0.6} ${x0 + dir * L * 0.95},${y - L * 0.35}
+            Q ${x0 + dir * L * 0.45},${y - L * 0.15} ${x0},${y}
+            Z
+        `;
+
+        hojas += `
             <path class="hoja"
-                  d="M50,${y} Q${50 + curvatura},${y - 8} ${50 + largo * lado},${y - 22}"
-                  stroke="currentColor" stroke-width="1.8" fill="none"
-                  stroke-linecap="round"
-                  style="color: ${['#6b7d3a','#7a8a42','#5e6f33','#88964a'][Math.floor(Math.random()*4)]};
+                  d="${d}"
+                  fill="url(#${idLeaf})"
+                  stroke="${col.leafB}"
+                  stroke-width="0.4"
+                  stroke-opacity="0.7"
+                  style="transform-origin: ${x0}px ${y}px;
                          --durHoja: ${durHoja}s;
-                         --delayHoja: ${delayHoja}s;
-                         transform-origin: 50px ${y}px;" />
+                         --delayHoja: ${delayHoja}s;" />
         `;
     }
-    return html;
+
+    return `
+        <svg viewBox="0 0 100 500" preserveAspectRatio="xMidYMax meet">
+            <defs>
+                <linearGradient id="${idStalk}" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="${col.leafA}"/>
+                    <stop offset="100%" stop-color="${col.stalk}"/>
+                </linearGradient>
+                <linearGradient id="${idLeaf}" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stop-color="${col.leafB}"/>
+                    <stop offset="55%" stop-color="${col.leafA}"/>
+                    <stop offset="100%" stop-color="${col.stalk}"/>
+                </linearGradient>
+            </defs>
+
+            <!-- Tallo con ligera conicidad -->
+            <path d="M 48.5,500 Q 49,300 49.5,${topStalk} L 50.5,${topStalk} Q 51,300 51.5,500 Z"
+                  fill="url(#${idStalk})"/>
+
+            <!-- Hojas -->
+            ${hojas}
+        </svg>
+    `;
 }
 
-// Generar al cargar
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', generarCanaveral);
 } else {
     generarCanaveral();
 }
 
-// Regenerar al redimensionar (con debounce)
 let timeoutResize;
 window.addEventListener('resize', () => {
     clearTimeout(timeoutResize);
@@ -143,8 +271,9 @@ async function cargarOpcionesLogin() {
         .order('nombre');
     if (error) { console.error(error); return; }
     const sel = document.getElementById('login-gerencia');
+    sel.innerHTML = '<option value="">Selecciona tu gerencia...</option>';
     data.forEach(g => {
-        sel.innerHTML += `<option value="${g.nombre}">${g.nombre}</option>`;
+        sel.innerHTML += `<option value="${g.nombre}">${embellecer(g.nombre)}</option>`;
     });
 }
 
@@ -176,7 +305,11 @@ async function intentarLogin() {
         return;
     }
 
-    usuarioActual = { nombre: data[0].nombre, esAdmin: false };
+    // GG y Legal son admin efectivos
+    const nombreNorm = normalizarTexto(data[0].nombre);
+    const esAdminFlag = GERENCIAS_ACCESO_TOTAL.some(g => normalizarTexto(g) === nombreNorm);
+
+    usuarioActual = { nombre: data[0].nombre, esAdmin: esAdminFlag };
     sessionStorage.setItem('usuario', JSON.stringify(usuarioActual));
     await iniciarDashboard();
 }
@@ -218,15 +351,14 @@ function cerrarSesion() {
 async function iniciarDashboard() {
     document.getElementById('pantalla-login').classList.add('hidden');
     document.getElementById('app-principal').classList.remove('hidden');
-    document.getElementById('usuario-actual').textContent = usuarioActual.nombre;
+    document.getElementById('usuario-actual').textContent = embellecer(usuarioActual.nombre);
 
-    // ⏸️ Detener animaciones del fondo para ahorrar CPU
     const fondo = document.querySelector('.fondo-animado');
     if (fondo) fondo.style.display = 'none';
 
-    // ✅ MOSTRAR PANEL DE EXCEL SI ES ADMIN
-    if (usuarioActual.esAdmin) {
-        document.getElementById('admin-excel-panel').classList.remove('hidden');
+    if (esAdminEfectivo()) {
+        const panelExcel = document.getElementById('admin-excel-panel');
+        if (panelExcel) panelExcel.classList.remove('hidden');
     }
 
     renderizarBotonesEvento();
@@ -241,7 +373,12 @@ async function iniciarDashboard() {
 
 async function aplicarRestriccionesUsuario() {
     const selGerencia = document.getElementById('filtro-gerencia');
-    if (usuarioActual.esAdmin) return;
+
+    if (usuarioVeTodo()) {
+        selGerencia.disabled = false;
+        selGerencia.classList.remove('bg-slate-100', 'cursor-not-allowed', 'text-slate-500');
+        return;
+    }
 
     selGerencia.value = usuarioActual.nombre;
     selGerencia.disabled = true;
@@ -254,12 +391,12 @@ async function aplicarRestriccionesUsuario() {
 // ==========================================
 function renderizarBotonesEvento() {
     const generarBotones = (esGrafico) => EVENTOS_DISPONIBLES.map(e => {
-        const activo = eventoSeleccionado === e;
+        const activo = eventoSeleccionado === e.valor;
         const etiqueta = esGrafico
-            ? (e === 'Acto Subestandar' ? 'Actos' : 'Condiciones')
-            : e;
-        return `<button data-valor="${e}"
-            class="btn-evento filter-chip w-full h-10 ${esGrafico ? 'px-3 text-xs' : 'px-3 text-xs'} font-semibold rounded-lg border transition flex items-center justify-center whitespace-nowrap
+            ? (e.valor === 'Acto Subestandar' ? 'Actos' : 'Condiciones')
+            : e.etiqueta;
+        return `<button data-valor="${e.valor}"
+            class="btn-evento filter-chip w-full h-10 px-3 text-xs font-semibold rounded-lg border transition flex items-center justify-center whitespace-nowrap
             ${activo
                 ? 'bg-emerald-700 text-white border-emerald-700 shadow-sm shadow-emerald-700/20'
                 : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/50'}">
@@ -309,18 +446,30 @@ function renderizarBotonesEstado() {
 // 6. FILTROS
 // ==========================================
 async function cargarFiltros() {
-    const { data: fechas } = await supabaseClient.from('hallazgos').select('"FECHA_ACONTECIMIENTO"').neq('"ESTADO"', 'Anulado');
+    let qFechas = supabaseClient.from('hallazgos').select('"FECHA_ACONTECIMIENTO"').neq('"ESTADO"', 'Anulado');
+    qFechas = excluirAnios(qFechas);
+    const { data: fechas } = await qFechas;
+
     const anios = [...new Set(fechas.map(f => {
         const partes = (f.FECHA_ACONTECIMIENTO || '').split('/');
         return partes[2] ? partes[2].substring(0, 4) : null;
-    }).filter(Boolean))].sort();
+    }).filter(Boolean))]
+      .filter(a => !ANIOS_EXCLUIDOS.includes(a))
+      .sort();
+
     const selAnio = document.getElementById('filtro-anio');
+    selAnio.innerHTML = '<option value="">Todos</option>';
     anios.forEach(a => selAnio.innerHTML += `<option value="${a}">${a}</option>`);
 
-    const { data: gerencias } = await supabaseClient.from('hallazgos').select('"DESC_AREA"').not('"DESC_AREA"', 'is', null).neq('"ESTADO"', 'Anulado');
+    let qGer = supabaseClient.from('hallazgos').select('"DESC_AREA"').not('"DESC_AREA"', 'is', null).neq('"ESTADO"', 'Anulado');
+    qGer = excluirAnios(qGer);
+    const { data: gerencias } = await qGer;
+
     const gerenciasUnicas = [...new Set(gerencias.map(g => g.DESC_AREA))].sort();
     const selGerencia = document.getElementById('filtro-gerencia');
-    gerenciasUnicas.forEach(g => selGerencia.innerHTML += `<option value="${g}">${g}</option>`);
+    selGerencia.innerHTML = '<option value="">Todas</option>';
+    // value = valor real, texto visible = embellecido
+    gerenciasUnicas.forEach(g => selGerencia.innerHTML += `<option value="${g}">${embellecer(g)}</option>`);
 
     await actualizarFiltroAreas();
 }
@@ -332,11 +481,12 @@ async function actualizarFiltroAreas() {
     selArea.innerHTML = '<option value="">Todas</option>';
 
     let query = supabaseClient.from('hallazgos').select('"DESC_SECCION"').not('"DESC_SECCION"', 'is', null).neq('"ESTADO"', 'Anulado');
+    query = excluirAnios(query);
     if (gerencia) query = query.eq('"DESC_AREA"', gerencia);
 
     const { data } = await query;
     const areasUnicas = [...new Set(data.map(a => a.DESC_SECCION))].sort();
-    areasUnicas.forEach(a => selArea.innerHTML += `<option value="${a}">${a}</option>`);
+    areasUnicas.forEach(a => selArea.innerHTML += `<option value="${a}">${embellecer(a)}</option>`);
 
     if (areasUnicas.includes(valorPrevio)) selArea.value = valorPrevio;
 }
@@ -361,6 +511,10 @@ async function cargarDashboard() {
         let queryTotal = supabaseClient.from('hallazgos').select('*', { count: 'exact', head: true }).neq('"ESTADO"', 'Anulado');
         let queryCerrados = supabaseClient.from('hallazgos').select('*', { count: 'exact', head: true }).eq('"ESTADO"', 'Cerrado');
         let queryPendientes = supabaseClient.from('hallazgos').select('*', { count: 'exact', head: true }).eq('"ESTADO"', 'Abierto');
+
+        queryTotal = excluirAnios(queryTotal);
+        queryCerrados = excluirAnios(queryCerrados);
+        queryPendientes = excluirAnios(queryPendientes);
 
         const aplicarFiltros = (q) => {
             if (anio) q = q.like('"FECHA_ACONTECIMIENTO"', `%/${anio}%`);
@@ -416,15 +570,17 @@ async function dibujarGrafico() {
     const anioActual = new Date().getFullYear();
     const mesActual = new Date().getMonth() + 1;
 
+    // POR AÑO
     if (!anio) {
         modoActualGrafico = 'por-anio';
         btnVolver.classList.add('hidden');
         titulo.textContent = 'Hallazgos por Año';
         subtitulo.textContent = gerencia || area
-            ? `Total por año · ${gerencia || area}`
+            ? `Total por año · ${embellecer(gerencia || area)}`
             : 'Haz clic en un año para explorar las gerencias';
 
         let q = supabaseClient.from('hallazgos').select('"FECHA_ACONTECIMIENTO","ESTADO"').neq('"ESTADO"', 'Anulado').range(0, 9999);
+        q = excluirAnios(q);
         if (evento) q = q.eq('"DESC_EVENTO"', evento);
         if (estado) q = q.eq('"ESTADO"', estado);
         if (gerencia) q = q.eq('"DESC_AREA"', gerencia);
@@ -439,6 +595,7 @@ async function dibujarGrafico() {
             const a = partes[2] ? partes[2].substring(0, 4) : null;
             const m = parseInt(partes[1]);
             if (!a || !m) return;
+            if (ANIOS_EXCLUIDOS.includes(a)) return;
             if (parseInt(a) === anioActual && m > mesActual) return;
             if (!porAnio[a]) porAnio[a] = { c: 0, p: 0 };
             if (h.ESTADO === 'Cerrado') porAnio[a].c++;
@@ -454,6 +611,7 @@ async function dibujarGrafico() {
     const mesLimite = esAnioActual ? mesActual : 12;
     const sufijoAcum = esAnioActual ? ` (Ene–${nombreMes(mesLimite)})` : '';
 
+    // POR GERENCIA
     if (!gerencia && !area) {
         modoActualGrafico = 'por-gerencia';
         btnVolver.classList.remove('hidden');
@@ -465,6 +623,7 @@ async function dibujarGrafico() {
             .like('"FECHA_ACONTECIMIENTO"', `%/${anio}%`)
             .not('"DESC_AREA"', 'is', null)
             .neq('"ESTADO"', 'Anulado').range(0, 9999);
+        q = excluirAnios(q);
         if (evento) q = q.eq('"DESC_EVENTO"', evento);
         if (estado) q = q.eq('"ESTADO"', estado);
 
@@ -485,10 +644,11 @@ async function dibujarGrafico() {
         return;
     }
 
+    // POR ÁREA
     if (gerencia && !area) {
         modoActualGrafico = 'por-area';
         btnVolver.classList.remove('hidden');
-        titulo.textContent = `Hallazgos por Área · ${gerencia}`;
+        titulo.textContent = `Hallazgos por Área · ${embellecer(gerencia)}`;
         subtitulo.textContent = `Acumulado${sufijoAcum} · Haz clic en un área para ver su tendencia mensual`;
 
         let q = supabaseClient.from('hallazgos')
@@ -497,6 +657,7 @@ async function dibujarGrafico() {
             .eq('"DESC_AREA"', gerencia)
             .not('"DESC_SECCION"', 'is', null)
             .neq('"ESTADO"', 'Anulado').range(0, 9999);
+        q = excluirAnios(q);
         if (evento) q = q.eq('"DESC_EVENTO"', evento);
         if (estado) q = q.eq('"ESTADO"', estado);
 
@@ -517,10 +678,11 @@ async function dibujarGrafico() {
         return;
     }
 
+    // MENSUAL
     if (area) {
         modoActualGrafico = 'mensual';
         btnVolver.classList.remove('hidden');
-        titulo.textContent = `Evolución Mensual · ${area}`;
+        titulo.textContent = `Evolución Mensual · ${embellecer(area)}`;
         if (mesSeleccionado !== '') {
             subtitulo.innerHTML = `Acumulado${sufijoAcum} · <span class="text-emerald-700 font-semibold">Filtrado por: ${nombreMes(mesSeleccionado)}</span> · Clic de nuevo para quitar`;
         } else {
@@ -532,6 +694,7 @@ async function dibujarGrafico() {
             .like('"FECHA_ACONTECIMIENTO"', `%/${anio}%`)
             .eq('"DESC_SECCION"', area)
             .neq('"ESTADO"', 'Anulado').range(0, 9999);
+        q = excluirAnios(q);
         if (evento) q = q.eq('"DESC_EVENTO"', evento);
         if (estado) q = q.eq('"ESTADO"', estado);
 
@@ -655,7 +818,10 @@ function pintarGrafico(labels, dataC, dataP, esAcumulado, modo) {
                     bodyFont: { size: 12, family: 'Inter' },
                     cornerRadius: 8,
                     displayColors: true,
-                    callbacks: { title: (items) => labels[items[0].dataIndex] }
+                    callbacks: {
+                        // 🆕 Tooltip con tildes
+                        title: (items) => embellecer(labels[items[0].dataIndex])
+                    }
                 }
             },
             scales: {
@@ -674,8 +840,9 @@ function pintarGrafico(labels, dataC, dataP, esAcumulado, modo) {
                         font: { size: 10, weight: '500', family: 'Inter' },
                         callback: function(value) {
                             const label = this.getLabelForValue(value);
-                            if (label.length <= 15) return label;
-                            return partirTexto(label, 18);
+                            const bonito = embellecer(label); // 🆕
+                            if (bonito.length <= 15) return bonito;
+                            return partirTexto(bonito, 18);
                         }
                     },
                     grid: { display: false }
@@ -693,7 +860,7 @@ async function manejarClickBarra(modo, label) {
         document.getElementById('filtro-anio').value = label;
         mesSeleccionado = '';
     } else if (modo === 'por-gerencia') {
-        if (!usuarioActual.esAdmin) return;
+        if (!usuarioVeTodo()) return;
         document.getElementById('filtro-gerencia').value = label;
         await actualizarFiltroAreas();
         document.getElementById('filtro-area').value = '';
@@ -716,15 +883,15 @@ document.getElementById('btn-volver-grafico').addEventListener('click', async ()
     if (modoActualGrafico === 'mensual') {
         document.getElementById('filtro-area').value = '';
     } else if (modoActualGrafico === 'por-area') {
-        if (usuarioActual.esAdmin) document.getElementById('filtro-gerencia').value = '';
+        if (usuarioVeTodo()) document.getElementById('filtro-gerencia').value = '';
         document.getElementById('filtro-area').value = '';
         await actualizarFiltroAreas();
-        if (!usuarioActual.esAdmin) document.getElementById('filtro-gerencia').value = usuarioActual.nombre;
+        if (!usuarioVeTodo()) document.getElementById('filtro-gerencia').value = usuarioActual.nombre;
     } else if (modoActualGrafico === 'por-gerencia') {
         document.getElementById('filtro-anio').value = '';
-        if (usuarioActual.esAdmin) document.getElementById('filtro-gerencia').value = '';
+        if (usuarioVeTodo()) document.getElementById('filtro-gerencia').value = '';
         document.getElementById('filtro-area').value = '';
-        if (!usuarioActual.esAdmin) document.getElementById('filtro-gerencia').value = usuarioActual.nombre;
+        if (!usuarioVeTodo()) document.getElementById('filtro-gerencia').value = usuarioActual.nombre;
     }
     await refrescarTodo();
 });
@@ -741,6 +908,8 @@ async function cargarTabla() {
             .from('hallazgos')
             .select('"COD_HALLAZGO","FECHA_ACONTECIMIENTO","DESC_SECCION","ESTADO","ACONTECIMIENTO"', { count: 'exact' })
             .neq('"ESTADO"', 'Anulado');
+
+        q = excluirAnios(q);
 
         if (anio) q = q.like('"FECHA_ACONTECIMIENTO"', `%/${anio}%`);
         if (mesSeleccionado !== '') {
@@ -790,7 +959,7 @@ async function cargarTabla() {
                     <td class="px-6 py-4 font-semibold text-slate-800 text-xs whitespace-nowrap">${h.COD_HALLAZGO || '-'}</td>
                     <td class="px-6 py-4 text-slate-600 text-xs whitespace-nowrap">${anioStr}</td>
                     <td class="px-6 py-4 text-slate-600 text-xs whitespace-nowrap">${mesStr}</td>
-                    <td class="px-6 py-4 text-slate-700 text-xs font-medium whitespace-nowrap">${h.DESC_SECCION || '-'}</td>
+                    <td class="px-6 py-4 text-slate-700 text-xs font-medium whitespace-nowrap">${embellecer(h.DESC_SECCION) || '-'}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${badge}</td>
                     <td class="px-6 py-4 text-slate-600 text-xs">${h.ACONTECIMIENTO || '-'}</td>
                 </tr>
@@ -884,11 +1053,8 @@ async function init() {
 }
 
 // ==========================================
-// ==========================================
 // 13. LÓGICA DE SUBIDA DE EXCEL (ADMIN)
 // ==========================================
-
-// --- Lógica para mostrar/ocultar el panel desplegable ---
 const btnToggleExcel = document.getElementById('btn-toggle-excel');
 const excelPanelContent = document.getElementById('excel-panel-content');
 const btnCerrarExcel = document.getElementById('btn-cerrar-excel');
@@ -903,7 +1069,6 @@ if (btnToggleExcel) {
         excelPanelContent.classList.add('hidden');
     });
 
-    // Cerrar el panel si se hace clic fuera de él
     document.addEventListener('click', (e) => {
         if (!excelPanelContent.contains(e.target) && !btnToggleExcel.contains(e.target)) {
             excelPanelContent.classList.add('hidden');
@@ -911,7 +1076,6 @@ if (btnToggleExcel) {
     });
 }
 
-// --- Lógica de subida de Excel ---
 document.getElementById('btnSubirExcel').addEventListener('click', async () => {
     const fileInput = document.getElementById('inputExcel');
     const file = fileInput.files[0];
@@ -933,7 +1097,6 @@ document.getElementById('btnSubirExcel').addEventListener('click', async () => {
         try {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
-            
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
             const jsonData = XLSX.utils.sheet_to_json(worksheet);
@@ -943,14 +1106,11 @@ document.getElementById('btnSubirExcel').addEventListener('click', async () => {
                 return;
             }
 
-            console.log("Datos leídos del Excel:", jsonData);
-
-            // ⚠️ IMPORTANTE: Verifica que 'hallazgos' y 'COD_HALLAZGO' sean los nombres correctos
-            const { data: upsertData, error } = await supabaseClient
-                .from('hallazgos') 
-                .upsert(jsonData, { 
-                    onConflict: 'COD_HALLAZGO', 
-                    ignoreDuplicates: false 
+            const { error } = await supabaseClient
+                .from('hallazgos')
+                .upsert(jsonData, {
+                    onConflict: 'COD_HALLAZGO',
+                    ignoreDuplicates: false
                 });
 
             if (error) {
@@ -960,7 +1120,7 @@ document.getElementById('btnSubirExcel').addEventListener('click', async () => {
                 alert(`✅ ¡Base de datos actualizada correctamente!\n\nSe procesaron ${jsonData.length} registros.`);
                 await refrescarTodo();
                 fileInput.value = '';
-                excelPanelContent.classList.add('hidden'); // Cerrar panel tras éxito
+                excelPanelContent.classList.add('hidden');
             }
         } catch (err) {
             console.error("Error al procesar el archivo:", err);
