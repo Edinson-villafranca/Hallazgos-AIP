@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- LIBRERÍA PARA LEER EXCEL -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
@@ -20,7 +21,7 @@
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
         /* ============================================
-           FONDO ANIMADO — Login
+           FONDO ANIMADO — Login (todo por código)
            ============================================ */
         .fondo-animado {
             position: absolute;
@@ -36,6 +37,7 @@
                 #4a5a2a 100%);
         }
 
+        /* --- SOL DIFUSO --- */
         .sol {
             position: absolute;
             top: 42%;
@@ -57,6 +59,7 @@
             50%      { opacity: 1;    transform: translate(-50%, -50%) scale(1.05); }
         }
 
+        /* --- NUBES --- */
         .nubes { position: absolute; inset: 0; pointer-events: none; }
         .nube {
             position: absolute;
@@ -76,6 +79,7 @@
             to   { transform: translateX(160vw); }
         }
 
+        /* --- COLINA LEJANA --- */
         .colina {
             position: absolute;
             bottom: 0;
@@ -86,17 +90,14 @@
             pointer-events: none;
         }
 
-        /* ============================================
-           CAÑAVERAL — ahora más realista
-           ============================================ */
+        /* --- CAÑAVERAL --- */
         .canas {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 85%;
+            height: 75%;
             pointer-events: none;
-            overflow: hidden;
         }
 
         .cana {
@@ -112,33 +113,25 @@
             width: auto;
             overflow: visible;
             transform-origin: bottom center;
-            animation: viento var(--dur, 5s) ease-in-out infinite alternate;
+            animation: viento var(--dur, 4s) ease-in-out infinite alternate;
             animation-delay: var(--delay, 0s);
         }
 
-        /* Capa trasera difusa */
-        .cana-back svg {
-            filter: blur(1.5px) brightness(0.75);
-            opacity: 0.7;
+        @keyframes viento {
+            0%   { transform: rotate(-1.8deg) translateX(-2px); }
+            100% { transform: rotate(2.2deg)  translateX(3px);  }
         }
 
-        /* Hojas — ondulan alrededor de su punto de unión al tallo */
         .hoja {
             animation: hojaOndula var(--durHoja, 3s) ease-in-out infinite alternate;
             animation-delay: var(--delayHoja, 0s);
-            will-change: transform;
         }
-
-        @keyframes viento {
-            0%   { transform: rotate(-1.6deg) translateX(-1.5px); }
-            100% { transform: rotate(2.1deg)  translateX(2.5px);  }
-        }
-
         @keyframes hojaOndula {
-            0%   { transform: rotate(-2.5deg) skewX(1.2deg); }
-            100% { transform: rotate(3.5deg)  skewX(-1.2deg); }
+            0%   { transform: rotate(-3deg); }
+            100% { transform: rotate(4deg);  }
         }
 
+        /* --- ATMÓSFERA (brillo cálido + viñeta) --- */
         .atmosfera {
             position: absolute;
             inset: 0;
@@ -154,7 +147,7 @@
         }
 
         @media (max-width: 768px) {
-            .canas { height: 65%; }
+            .canas { height: 55%; }
             .sol   { width: 60vmin; height: 60vmin; }
         }
 
@@ -168,6 +161,7 @@
     <!-- ==================== LOGIN ==================== -->
     <div id="pantalla-login" class="fixed inset-0 flex items-center justify-center z-50 p-4 overflow-hidden">
 
+        <!-- 🎨 FONDO ANIMADO POR CÓDIGO -->
         <div class="fondo-animado" aria-hidden="true">
             <div class="cielo"></div>
             <div class="sol"></div>
@@ -209,7 +203,7 @@
                     </div>
                     <div>
                         <p class="font-semibold text-sm text-slate-800">Modo Administrador</p>
-                        <p class="text-xs text-slate-500">Seguridad Industrial</p>
+                        <p class="text-xs text-slate-500">Solo Seguridad Industrial</p>
                     </div>
                 </button>
             </div>
@@ -218,11 +212,11 @@
         <!-- Formulario login normal -->
         <div id="form-login-normal" class="relative z-10 bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-10 w-full max-w-md border border-white/40">
             <div class="text-center mb-10">
-                <div class="inline-flex items-center justify-center w-14 h-14 bg-emerald-600 rounded-2xl mb-5 shadow-lg shadow-emerald-600/30">
-                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                    </svg>
+                <!-- ✅ NUEVO LOGO EN LUGAR DEL CANDADO -->
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-white rounded-2xl mb-5 shadow-lg border border-slate-100 p-2">
+                    <img src="assets/logo.png" alt="AIPSA" class="w-full h-full object-contain">
                 </div>
+                
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Hallazgos AIP</h1>
                 <p class="text-slate-500 text-sm mt-2">Accede con tus credenciales de gerencia</p>
             </div>
@@ -289,13 +283,16 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-4 relative">
-
+                    
+                    <!-- ✅ BOTÓN DE EXCEL (ADMIN) -->
                     <div id="admin-excel-panel" class="hidden relative">
                         <button id="btn-toggle-excel" class="bg-emerald-600 hover:bg-emerald-700 text-white p-2.5 rounded-xl shadow-md transition-all duration-200 flex items-center justify-center hover:scale-105">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                             </svg>
                         </button>
+
+                        <!-- Panel desplegable -->
                         <div id="excel-panel-content" class="hidden absolute top-14 right-0 bg-white rounded-2xl shadow-2xl border border-slate-200 p-4 w-80 z-50">
                             <div class="flex items-center justify-between mb-3">
                                 <div class="flex items-center gap-2">
@@ -312,7 +309,7 @@
                                     </svg>
                                 </button>
                             </div>
-                            <input type="file" id="inputExcel" accept=".xlsx, .xls"
+                            <input type="file" id="inputExcel" accept=".xlsx, .xls" 
                                 class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer border border-slate-200 rounded-lg p-1">
                             <button id="btnSubirExcel" class="w-full mt-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold py-2.5 rounded-xl transition shadow-lg shadow-emerald-600/20">
                                 Subir y Actualizar
@@ -320,6 +317,7 @@
                             <p class="text-[10px] text-slate-400 mt-2 text-center">Sube el Excel con la misma estructura de la tabla</p>
                         </div>
                     </div>
+                    <!-- ✅ FIN BOTÓN DE EXCEL -->
 
                     <div class="text-right hidden sm:block">
                         <p class="text-[10px] text-slate-400 uppercase tracking-wider font-medium">Sesión activa</p>
@@ -342,38 +340,45 @@
                 <div class="h-1 bg-gradient-to-r from-emerald-700 via-emerald-600 to-red-600"></div>
                 <div class="p-5">
                     <div class="grid grid-cols-2 md:grid-cols-5 gap-4 items-start">
+
                         <div>
                             <label class="text-xs font-extrabold text-slate-900 mb-2 block tracking-widest uppercase">Año</label>
                             <select id="filtro-anio" class="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-3 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition cursor-pointer hover:border-slate-300">
                                 <option value="">Todos</option>
                             </select>
                         </div>
+
                         <div>
                             <label class="text-xs font-extrabold text-slate-900 mb-2 block tracking-widest uppercase">Evento</label>
                             <div id="filtro-evento-botones" class="flex flex-col gap-1.5"></div>
                         </div>
+
                         <div>
                             <label class="text-xs font-extrabold text-slate-900 mb-2 block tracking-widest uppercase">Estado</label>
                             <div id="filtro-estado-botones" class="flex flex-col gap-1.5"></div>
                         </div>
+
                         <div>
                             <label class="text-xs font-extrabold text-slate-900 mb-2 block tracking-widest uppercase">Gerencia</label>
                             <select id="filtro-gerencia" class="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-3 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition cursor-pointer hover:border-slate-300">
                                 <option value="">Todas</option>
                             </select>
                         </div>
+
                         <div>
                             <label class="text-xs font-extrabold text-slate-900 mb-2 block tracking-widest uppercase">Área</label>
                             <select id="filtro-area" class="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-3 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition cursor-pointer hover:border-slate-300">
                                 <option value="">Todas</option>
                             </select>
                         </div>
+
                     </div>
                 </div>
             </div>
 
             <!-- KPIs -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+
                 <div class="kpi-card bg-white rounded-2xl border border-slate-200 p-6 relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-1 h-full bg-slate-800"></div>
                     <div class="flex justify-between items-start">
@@ -385,6 +390,7 @@
                         <img src="assets/total.png" alt="" class="h-10 w-10 object-contain opacity-90 mt-1">
                     </div>
                 </div>
+
                 <div class="kpi-card bg-white rounded-2xl border border-slate-200 p-6 relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
                     <div class="flex justify-between items-start">
@@ -396,6 +402,7 @@
                         <img src="assets/cerrados.png" alt="" class="h-10 w-10 object-contain opacity-90 mt-1">
                     </div>
                 </div>
+
                 <div class="kpi-card bg-white rounded-2xl border border-slate-200 p-6 relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
                     <div class="flex justify-between items-start">
@@ -407,13 +414,14 @@
                         <img src="assets/pendientes.png" alt="" class="h-10 w-10 object-contain opacity-90 mt-1">
                     </div>
                 </div>
+
                 <div class="kpi-card bg-white rounded-2xl border border-slate-200 p-6 relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
                     <div class="flex justify-between items-start">
                         <div class="flex-1">
                             <p class="text-[11px] font-extrabold text-blue-700 tracking-widest uppercase mb-4">% Cumplimiento</p>
                             <p id="stat-porcentaje" class="text-5xl font-bold text-slate-900 tracking-tight leading-none">0%</p>
-                            <p class="text-xs text-slate-400 mt-3">Objetivo: <span class="font-semibold text-slate-600">100%</span></p>
+                            <p class="text-xs text-slate-400 mt-3">Objetivo: <span class="font-semibold text-slate-600">75%</span></p>
                         </div>
                         <div class="bg-blue-50 p-2 rounded-xl mt-1">
                             <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
