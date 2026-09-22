@@ -25,7 +25,7 @@ const EVENTOS_DISPONIBLES = [
 const ESTADOS_DISPONIBLES = ['Abierto', 'Cerrado'];
 const NOMBRE_ADMIN = 'Seguridad Industrial';
 
-// 🆕 Gerencias con acceso TOTAL (admin efectivos: ven todo y suben Excel)
+// 🆕 Gerencias que ven TODOS los datos (pero NO pueden subir Excel)
 const GERENCIAS_ACCESO_TOTAL = [
     'GERENCIA GENERAL',
     'GERENCIA LEGAL Y RELAC LABORAL'
@@ -35,8 +35,6 @@ const GERENCIAS_ACCESO_TOTAL = [
 const ANIOS_EXCLUIDOS = ['2023'];
 
 // 🆕 Diccionario de correcciones ortográficas (solo visual)
-// key   → como está en la BD (mayúsculas, sin tildes)
-// value → como quieres mostrarlo
 const CORRECCIONES_ORTOGRAFICAS = {
     'FABRICA':                        'FÁBRICA',
     'ELABORACION':                    'ELABORACIÓN',
@@ -60,7 +58,6 @@ const CORRECCIONES_ORTOGRAFICAS = {
     'OPERACION':                      'OPERACIÓN',
     'MANTENIMIENTO MECANICO':         'MANTENIMIENTO MECÁNICO',
     'GERENCIA LEGAL Y RELAC LABORAL': 'GERENCIA LEGAL Y RELACIONES LABORALES',
-    // ⬆️ Agrega aquí todos los que necesites
 };
 
 Chart.register(ChartDataLabels);
@@ -81,8 +78,6 @@ function nombreMes(n) { return MESES_NOMBRES[n] || ''; }
 // ==========================================
 // 1b. HELPERS DE PERMISOS, ORTOGRAFÍA Y EXCLUSIÓN
 // ==========================================
-
-// Normaliza texto: sin tildes, sin mayúsculas, sin espacios extra
 function normalizarTexto(s) {
     return (s || '')
         .toString()
@@ -92,19 +87,24 @@ function normalizarTexto(s) {
         .replace(/[\u0300-\u036f]/g, '');
 }
 
-// ¿Es admin efectivo? (admin real, GG o Legal)
-function esAdminEfectivo() {
+// ¿Es admin real? (solo Seguridad Industrial puede subir Excel)
+function esAdminReal() {
+    return usuarioActual && usuarioActual.esAdmin === true;
+}
+
+// ¿Ve todos los datos? (admin real + GERENCIA GENERAL + GERENCIA LEGAL)
+function usuarioVeTodo() {
     if (!usuarioActual) return false;
     if (usuarioActual.esAdmin) return true;
     const nombreNorm = normalizarTexto(usuarioActual.nombre);
     return GERENCIAS_ACCESO_TOTAL.some(g => normalizarTexto(g) === nombreNorm);
 }
 
-function usuarioVeTodo() {
-    return esAdminEfectivo();
+// ¿Puede subir Excel? (SOLO el admin real: Seguridad Industrial)
+function puedeSubirExcel() {
+    return esAdminReal();
 }
 
-// Excluye los años prohibidos de cualquier query de Supabase
 function excluirAnios(q) {
     ANIOS_EXCLUIDOS.forEach(a => {
         q = q.not('"FECHA_ACONTECIMIENTO"', 'like', `%/${a}%`);
@@ -112,7 +112,6 @@ function excluirAnios(q) {
     return q;
 }
 
-// 🆕 Devuelve el nombre "bonito" (con tildes) sin cambiar el valor real
 function embellecer(texto) {
     if (!texto) return texto;
     const key = texto.toString().trim().toUpperCase();
@@ -131,11 +130,9 @@ function generarCanaveral() {
     const totalBack = esMovil ? 15 : 25;
     const totalFront = esMovil ? 30 : 55;
 
-    // Capa trasera (difusa)
     for (let i = 0; i < totalBack; i++) {
         cont.appendChild(crearCana(i, totalBack, true));
     }
-    // Capa frontal
     for (let i = 0; i < totalFront; i++) {
         cont.appendChild(crearCana(i, totalFront, false));
     }
@@ -145,33 +142,27 @@ function crearCana(index, total, esBack) {
     const cana = document.createElement('div');
     cana.className = 'cana' + (esBack ? ' cana-back' : '');
 
-    // Posición horizontal con un poco de desorden
     const posBase = index / total;
     const leftPct = posBase * 108 - 4 + (Math.random() * 3 - 1.5);
     cana.style.left = leftPct + '%';
 
-    // Profundidad: capa trasera más baja, capa frontal más alta
     const profundidad = esBack ? Math.random() * 0.35 : 0.35 + Math.random() * 0.65;
     const altura = esBack ? 40 + profundidad * 25 : 55 + profundidad * 45;
     cana.style.height = altura + '%';
 
-    // Velocidad del viento (más rápida al frente)
     const dur = esBack ? 4.5 + Math.random() * 2 : 3 + Math.random() * 2;
     cana.style.setProperty('--dur', dur.toFixed(2) + 's');
     cana.style.setProperty('--delay', (-Math.random() * 4).toFixed(2) + 's');
 
-    // z-index por profundidad
     cana.style.zIndex = esBack
         ? String(Math.round(profundidad * 50))
         : String(100 + Math.round(profundidad * 100));
 
-    // Generar el SVG
     cana.innerHTML = generarSVGCana(index, esBack);
     return cana;
 }
 
 function generarSVGCana(index, esBack) {
-    // Paleta de verdes (atardecer: cálidos y olivas)
     const paleta = [
         { stalk: '#7A8838', leafA: '#8B9A45', leafB: '#4A5A20' },
         { stalk: '#6B7833', leafA: '#7A8838', leafB: '#3D4A18' },
@@ -184,24 +175,19 @@ function generarSVGCana(index, esBack) {
     const idStalk = `stalk_${index}_${esBack ? 'b' : 'f'}`;
     const idLeaf = `leaf_${index}_${esBack ? 'b' : 'f'}`;
 
-    // Altura donde termina el tallo
     const topStalk = 60 + Math.random() * 80;
-
-    // Hojas: entre 5 y 8, distribuidas a lo largo del tallo (más densas arriba)
     const numHojas = 5 + Math.floor(Math.random() * 4);
     let hojas = '';
 
     for (let h = 0; h < numHojas; h++) {
-        const frac = h / (numHojas - 1); // 0 arriba … 1 abajo
-        // Distribución: más juntas arriba
+        const frac = h / (numHojas - 1);
         const y = topStalk + 20 + Math.pow(frac, 0.75) * (480 - topStalk - 20);
 
         const dir = h % 2 === 0 ? 1 : -1;
-        const L = 22 + Math.random() * 22; // longitud de la hoja
+        const L = 22 + Math.random() * 22;
         const durHoja = (2 + Math.random() * 2).toFixed(2);
         const delayHoja = (-Math.random() * 3).toFixed(2);
 
-        // Path de la hoja: arqueada, se eleva y luego cae en la punta
         const x0 = 50;
         const d = `
             M ${x0},${y}
@@ -238,11 +224,9 @@ function generarSVGCana(index, esBack) {
                 </linearGradient>
             </defs>
 
-            <!-- Tallo con ligera conicidad -->
             <path d="M 48.5,500 Q 49,300 49.5,${topStalk} L 50.5,${topStalk} Q 51,300 51.5,500 Z"
                   fill="url(#${idStalk})"/>
 
-            <!-- Hojas -->
             ${hojas}
         </svg>
     `;
@@ -305,11 +289,10 @@ async function intentarLogin() {
         return;
     }
 
-    // GG y Legal son admin efectivos
-    const nombreNorm = normalizarTexto(data[0].nombre);
-    const esAdminFlag = GERENCIAS_ACCESO_TOTAL.some(g => normalizarTexto(g) === nombreNorm);
-
-    usuarioActual = { nombre: data[0].nombre, esAdmin: esAdminFlag };
+    // ⚠️ IMPORTANTE: Aquí asignamos esAdmin: false SIEMPRE.
+    // Aunque sea GERENCIA GENERAL o LEGAL, NO son admins reales.
+    // Solo verán todos los datos (usuarioVeTodo), pero NO podrán subir Excel.
+    usuarioActual = { nombre: data[0].nombre, esAdmin: false };
     sessionStorage.setItem('usuario', JSON.stringify(usuarioActual));
     await iniciarDashboard();
 }
@@ -356,7 +339,8 @@ async function iniciarDashboard() {
     const fondo = document.querySelector('.fondo-animado');
     if (fondo) fondo.style.display = 'none';
 
-    if (esAdminEfectivo()) {
+    // ✅ SOLO el admin real (Seguridad Industrial) ve el panel de subir Excel
+    if (puedeSubirExcel()) {
         const panelExcel = document.getElementById('admin-excel-panel');
         if (panelExcel) panelExcel.classList.remove('hidden');
     }
@@ -468,7 +452,6 @@ async function cargarFiltros() {
     const gerenciasUnicas = [...new Set(gerencias.map(g => g.DESC_AREA))].sort();
     const selGerencia = document.getElementById('filtro-gerencia');
     selGerencia.innerHTML = '<option value="">Todas</option>';
-    // value = valor real, texto visible = embellecido
     gerenciasUnicas.forEach(g => selGerencia.innerHTML += `<option value="${g}">${embellecer(g)}</option>`);
 
     await actualizarFiltroAreas();
@@ -570,7 +553,6 @@ async function dibujarGrafico() {
     const anioActual = new Date().getFullYear();
     const mesActual = new Date().getMonth() + 1;
 
-    // POR AÑO
     if (!anio) {
         modoActualGrafico = 'por-anio';
         btnVolver.classList.add('hidden');
@@ -611,7 +593,6 @@ async function dibujarGrafico() {
     const mesLimite = esAnioActual ? mesActual : 12;
     const sufijoAcum = esAnioActual ? ` (Ene–${nombreMes(mesLimite)})` : '';
 
-    // POR GERENCIA
     if (!gerencia && !area) {
         modoActualGrafico = 'por-gerencia';
         btnVolver.classList.remove('hidden');
@@ -644,7 +625,6 @@ async function dibujarGrafico() {
         return;
     }
 
-    // POR ÁREA
     if (gerencia && !area) {
         modoActualGrafico = 'por-area';
         btnVolver.classList.remove('hidden');
@@ -678,7 +658,6 @@ async function dibujarGrafico() {
         return;
     }
 
-    // MENSUAL
     if (area) {
         modoActualGrafico = 'mensual';
         btnVolver.classList.remove('hidden');
@@ -819,7 +798,6 @@ function pintarGrafico(labels, dataC, dataP, esAcumulado, modo) {
                     cornerRadius: 8,
                     displayColors: true,
                     callbacks: {
-                        // 🆕 Tooltip con tildes
                         title: (items) => embellecer(labels[items[0].dataIndex])
                     }
                 }
@@ -840,7 +818,7 @@ function pintarGrafico(labels, dataC, dataP, esAcumulado, modo) {
                         font: { size: 10, weight: '500', family: 'Inter' },
                         callback: function(value) {
                             const label = this.getLabelForValue(value);
-                            const bonito = embellecer(label); // 🆕
+                            const bonito = embellecer(label);
                             if (bonito.length <= 15) return bonito;
                             return partirTexto(bonito, 18);
                         }
@@ -1077,6 +1055,12 @@ if (btnToggleExcel) {
 }
 
 document.getElementById('btnSubirExcel').addEventListener('click', async () => {
+    // ✅ Doble verificación: solo el admin real puede subir
+    if (!puedeSubirExcel()) {
+        alert("⛔ No tienes permisos para subir el Excel. Solo Seguridad Industrial puede hacerlo.");
+        return;
+    }
+
     const fileInput = document.getElementById('inputExcel');
     const file = fileInput.files[0];
 
@@ -1097,14 +1081,31 @@ document.getElementById('btnSubirExcel').addEventListener('click', async () => {
         try {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
+            
+            // ✅ Forzar a leer la PRIMERA hoja del Excel
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
-            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+            
+            let jsonData = XLSX.utils.sheet_to_json(worksheet);
 
             if (jsonData.length === 0) {
                 alert("⚠️ El archivo Excel está vacío o no tiene el formato correcto.");
                 return;
             }
+
+            // ✅ LIMPIEZA: Eliminar la columna 'id' y columnas vacías
+            jsonData = jsonData.map(row => {
+                const filaLimpia = {};
+                Object.keys(row).forEach(key => {
+                    const nombreColumna = key.trim();
+                    if (nombreColumna !== '' && nombreColumna.toLowerCase() !== 'id') {
+                        filaLimpia[nombreColumna] = row[key];
+                    }
+                });
+                return filaLimpia;
+            });
+
+            console.log("Datos limpios listos para subir:", jsonData);
 
             const { error } = await supabaseClient
                 .from('hallazgos')
@@ -1115,7 +1116,7 @@ document.getElementById('btnSubirExcel').addEventListener('click', async () => {
 
             if (error) {
                 console.error("Error detallado de Supabase:", error);
-                alert(`❌ Error al actualizar: ${error.message}\n\nVerifica que los nombres de las columnas del Excel coincidan exactamente con los de la base de datos.`);
+                alert(`❌ Error al actualizar: ${error.message}\n\nVerifica que los nombres de las columnas del Excel coincidan exactamente con los de la base de datos y que 'COD_HALLAZGO' sea UNIQUE.`);
             } else {
                 alert(`✅ ¡Base de datos actualizada correctamente!\n\nSe procesaron ${jsonData.length} registros.`);
                 await refrescarTodo();
