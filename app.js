@@ -252,9 +252,9 @@ window.addEventListener('resize', () => {
 // 3. LOGIN
 // ==========================================
 // 🆕 Gerencias que NO quieres que aparezcan en el login
+// (se compara normalizado: sin tildes, sin mayúsculas, sin espacios extra)
 const GERENCIAS_EXCLUIDAS_LOGIN = [
     'Relaciones Laborales'
-    // Si necesitas excluir otra, agrégala aquí con el nombre exacto de Supabase
 ];
 
 async function cargarOpcionesLogin() {
@@ -268,12 +268,22 @@ async function cargarOpcionesLogin() {
     const sel = document.getElementById('login-gerencia');
     sel.innerHTML = '<option value="">Selecciona tu gerencia...</option>';
 
-    // ✅ Filtrar las gerencias excluidas
-    const dataFiltrada = data.filter(g => !GERENCIAS_EXCLUIDAS_LOGIN.includes(g.nombre));
+    // ✅ Normalizar las excluidas para comparar de forma segura
+    const excluidasNorm = GERENCIAS_EXCLUIDAS_LOGIN.map(normalizarTexto);
+
+    // ✅ Filtrar comparando normalizado
+    const dataFiltrada = data.filter(g => {
+        const nombreNorm = normalizarTexto(g.nombre);
+        const excluida = excluidasNorm.includes(nombreNorm);
+        if (excluida) console.log('🚫 Excluida del login:', JSON.stringify(g.nombre));
+        return !excluida;
+    });
 
     dataFiltrada.forEach(g => {
         sel.innerHTML += `<option value="${g.nombre}">${embellecer(g.nombre)}</option>`;
     });
+
+    console.log('✅ Gerencias cargadas en login:', dataFiltrada.map(g => g.nombre));
 }
 
 async function intentarLogin() {
