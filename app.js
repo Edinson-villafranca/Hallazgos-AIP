@@ -943,21 +943,31 @@ async function cargarTabla() {
         document.getElementById('btn-next').disabled = paginaActual >= totalPaginas;
 
         const tbody = document.getElementById('tabla-body');
+        const cardsContainer = document.getElementById('tabla-cards');
+
         if (!data || data.length === 0) {
             tbody.innerHTML = `<tr><td colspan="6" class="text-center py-12 text-slate-400 text-sm">No se encontraron hallazgos</td></tr>`;
+            cardsContainer.innerHTML = `<div class="text-center py-12 text-slate-400 text-sm">No se encontraron hallazgos</div>`;
             return;
         }
 
+        // ✅ Función auxiliar para generar el badge de estado
+        const generarBadge = (estado) => {
+            if (estado === 'Cerrado') {
+                return '<span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>Cerrado</span>';
+            } else if (estado === 'Abierto') {
+                return '<span class="inline-flex items-center gap-1.5 bg-red-50 text-red-700 px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap"><span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span>Abierto</span>';
+            }
+            return `<span class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap">${estado || '-'}</span>`;
+        };
+
+        // ============================================
+        // ✅ VISTA ESCRITORIO: tabla normal
+        // ============================================
         tbody.innerHTML = data.map(h => {
             const partes = (h.FECHA_ACONTECIMIENTO || '').split('/');
             const anioStr = partes[2] ? partes[2].substring(0, 4) : '';
             const mesStr = partes[1] ? nombreMes(parseInt(partes[1])) : '';
-
-            const badge = h.ESTADO === 'Cerrado'
-                ? '<span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-md text-[11px] font-semibold"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>Cerrado</span>'
-                : h.ESTADO === 'Abierto'
-                ? '<span class="inline-flex items-center gap-1.5 bg-red-50 text-red-700 px-2.5 py-1 rounded-md text-[11px] font-semibold"><span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span>Abierto</span>'
-                : `<span class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md text-[11px] font-semibold">${h.ESTADO || '-'}</span>`;
 
             return `
                 <tr class="row-hover transition">
@@ -965,9 +975,37 @@ async function cargarTabla() {
                     <td class="px-6 py-4 text-slate-600 text-xs whitespace-nowrap">${anioStr}</td>
                     <td class="px-6 py-4 text-slate-600 text-xs whitespace-nowrap">${mesStr}</td>
                     <td class="px-6 py-4 text-slate-700 text-xs font-medium whitespace-nowrap">${embellecer(h.DESC_SECCION) || '-'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${badge}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${generarBadge(h.ESTADO)}</td>
                     <td class="px-6 py-4 text-slate-600 text-xs">${h.ACONTECIMIENTO || '-'}</td>
                 </tr>
+            `;
+        }).join('');
+
+        // ============================================
+        // ✅ VISTA MÓVIL: tarjetas
+        // ============================================
+        cardsContainer.innerHTML = data.map(h => {
+            const partes = (h.FECHA_ACONTECIMIENTO || '').split('/');
+            const anioStr = partes[2] ? partes[2].substring(0, 4) : '';
+            const mesStr = partes[1] ? nombreMes(parseInt(partes[1])) : '';
+
+            return `
+                <div class="p-4 space-y-2 hover:bg-slate-50 transition">
+                    <div class="flex justify-between items-start gap-3">
+                        <span class="font-bold text-slate-800 text-sm">${h.COD_HALLAZGO || '-'}</span>
+                        ${generarBadge(h.ESTADO)}
+                    </div>
+                    <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+                        <span><strong class="text-slate-700 font-semibold">Año:</strong> ${anioStr || '-'}</span>
+                        <span><strong class="text-slate-700 font-semibold">Mes:</strong> ${mesStr || '-'}</span>
+                    </div>
+                    <p class="text-xs text-slate-700">
+                        <strong class="text-slate-700 font-semibold">Área:</strong> ${embellecer(h.DESC_SECCION) || '-'}
+                    </p>
+                    <p class="text-xs text-slate-600 leading-relaxed pt-2 border-t border-slate-100 mt-2">
+                        ${h.ACONTECIMIENTO || '-'}
+                    </p>
+                </div>
             `;
         }).join('');
 
