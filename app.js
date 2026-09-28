@@ -830,29 +830,33 @@ function pintarGrafico(labels, dataC, dataP, esAcumulado, modo) {
                 }
             },
             scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { precision: 0, color: '#94a3b8', font: { size: 10, family: 'Inter' } },
-                    grid: { color: '#f1f5f9', drawBorder: false },
-                    grace: '15%'
-                },
-                x: {
-                    ticks: {
-                        autoSkip: false,
-                        maxRotation: 0,
-                        minRotation: 0,
-                        color: '#64748b',
-                        font: { size: 10, weight: '500', family: 'Inter' },
-                        callback: function(value) {
-                            const label = this.getLabelForValue(value);
-                            const bonito = embellecer(label);
-                            if (bonito.length <= 15) return bonito;
-                            return partirTexto(bonito, 18);
-                        }
-                    },
-                    grid: { display: false }
+    y: {
+        beginAtZero: true,
+        ticks: { precision: 0, color: '#94a3b8', font: { size: 10, family: 'Inter' } },
+        grid: { color: '#f1f5f9', drawBorder: false },
+        grace: '15%'
+    },
+    x: {
+        ticks: {
+            autoSkip: false,
+            maxRotation: window.innerWidth < 640 ? 90 : 0,
+            minRotation: window.innerWidth < 640 ? 45 : 0,
+            color: '#64748b',
+            font: { size: window.innerWidth < 640 ? 9 : 10, weight: '500', family: 'Inter' },
+            callback: function(value) {
+                const label = this.getLabelForValue(value);
+                const bonito = embellecer(label);
+                if (window.innerWidth < 640) {
+                    if (bonito.length <= 12) return bonito;
+                    return partirTexto(bonito, 14);
                 }
+                if (bonito.length <= 15) return bonito;
+                return partirTexto(bonito, 18);
             }
+        },
+        grid: { display: false }
+    }
+}
         }
     });
 }
