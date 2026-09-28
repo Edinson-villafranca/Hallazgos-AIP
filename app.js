@@ -30,7 +30,11 @@ const GERENCIAS_ACCESO_TOTAL = [
     'GERENCIA GENERAL',
     'GERENCIA LEGAL Y RELAC LABORAL'
 ];
-
+// 🆕 Gerencias que NO deben mostrarse en los filtros ni en el login
+const GERENCIAS_EXCLUIDAS = [
+    'Relaciones Laborales',
+    'GERENCIA LEGAL Y RELAC LABORAL' // Opcional, por si en hallazgos está con este nombre exacto
+];
 // 🆕 Años que NO deben mostrarse
 const ANIOS_EXCLUIDOS = ['2023'];
 
@@ -247,6 +251,12 @@ window.addEventListener('resize', () => {
 // ==========================================
 // 3. LOGIN
 // ==========================================
+// 🆕 Gerencias que NO quieres que aparezcan en el login
+const GERENCIAS_EXCLUIDAS_LOGIN = [
+    'Relaciones Laborales'
+    // Si necesitas excluir otra, agrégala aquí con el nombre exacto de Supabase
+];
+
 async function cargarOpcionesLogin() {
     const { data, error } = await supabaseClient
         .from('gerencias_acceso')
@@ -254,9 +264,14 @@ async function cargarOpcionesLogin() {
         .eq('es_admin', false)
         .order('nombre');
     if (error) { console.error(error); return; }
+
     const sel = document.getElementById('login-gerencia');
     sel.innerHTML = '<option value="">Selecciona tu gerencia...</option>';
-    data.forEach(g => {
+
+    // ✅ Filtrar las gerencias excluidas
+    const dataFiltrada = data.filter(g => !GERENCIAS_EXCLUIDAS_LOGIN.includes(g.nombre));
+
+    dataFiltrada.forEach(g => {
         sel.innerHTML += `<option value="${g.nombre}">${embellecer(g.nombre)}</option>`;
     });
 }
@@ -449,7 +464,9 @@ async function cargarFiltros() {
     qGer = excluirAnios(qGer);
     const { data: gerencias } = await qGer;
 
-    const gerenciasUnicas = [...new Set(gerencias.map(g => g.DESC_AREA))].sort();
+    const gerenciasUnicas = [...new Set(gerencias.map(g => g.DESC_AREA))]
+    .filter(g => !GERENCIAS_EXCLUIDAS.includes(g)) // <--- Filtro para excluir
+    .sort();
     const selGerencia = document.getElementById('filtro-gerencia');
     selGerencia.innerHTML = '<option value="">Todas</option>';
     gerenciasUnicas.forEach(g => selGerencia.innerHTML += `<option value="${g}">${embellecer(g)}</option>`);
