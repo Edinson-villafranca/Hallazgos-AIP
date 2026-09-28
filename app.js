@@ -554,12 +554,12 @@ async function cargarDashboard() {
         elPorcentaje.textContent = `${porcentaje}%`;
         const numPct = parseFloat(porcentaje);
         if (numPct < 75) {
-            elPorcentaje.className = 'text-5xl font-bold text-red-600 tracking-tight leading-none';
-        } else if (numPct < 90) {
-            elPorcentaje.className = 'text-5xl font-bold text-amber-500 tracking-tight leading-none';
-        } else {
-            elPorcentaje.className = 'text-5xl font-bold text-emerald-600 tracking-tight leading-none';
-        }
+    elPorcentaje.className = 'text-2xl sm:text-4xl md:text-5xl font-bold text-red-600 tracking-tight leading-none';
+} else if (numPct < 90) {
+    elPorcentaje.className = 'text-2xl sm:text-4xl md:text-5xl font-bold text-amber-500 tracking-tight leading-none';
+} else {
+    elPorcentaje.className = 'text-2xl sm:text-4xl md:text-5xl font-bold text-emerald-600 tracking-tight leading-none';
+}
 
     } catch (error) {
         console.error('❌ Error dashboard:', error.message);
