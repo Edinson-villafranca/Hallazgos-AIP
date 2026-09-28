@@ -405,7 +405,7 @@ function renderizarBotonesEvento() {
             ? (e.valor === 'Acto Subestandar' ? 'Actos' : 'Condiciones')
             : e.etiqueta;
         return `<button data-valor="${e.valor}"
-            class="btn-evento filter-chip w-full h-10 px-3 text-xs font-semibold rounded-lg border transition flex items-center justify-center whitespace-nowrap
+             class="btn-evento filter-chip w-full min-h-[2.5rem] h-auto px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold rounded-lg border transition flex items-center justify-center leading-tight text-center
             ${activo
                 ? 'bg-emerald-700 text-white border-emerald-700 shadow-sm shadow-emerald-700/20'
                 : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/50'}">
@@ -433,7 +433,7 @@ function renderizarBotonesEstado() {
     cont.innerHTML = ESTADOS_DISPONIBLES.map(e => {
         const activo = estadoSeleccionado === e;
         return `<button data-valor="${e}"
-            class="btn-estado filter-chip w-full h-10 px-3 text-xs font-semibold rounded-lg border transition flex items-center justify-center whitespace-nowrap
+            class="btn-estado filter-chip w-full min-h-[2.5rem] h-auto px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-semibold rounded-lg border transition flex items-center justify-center leading-tight text-center
             ${activo
                 ? 'bg-slate-900 text-white border-slate-900 shadow-sm shadow-slate-900/20'
                 : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400 hover:bg-slate-50'}">
