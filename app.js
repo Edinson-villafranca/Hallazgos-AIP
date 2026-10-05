@@ -14,9 +14,6 @@ let eventoSeleccionado = '';
 let estadoSeleccionado = '';
 let mesSeleccionado = '';
 
-// 🆕 Cada evento tiene:
-//    valor    → EXACTO como está en Supabase (sin tildes). NO TOCAR sin verificar BD.
-//    etiqueta → texto visible del botón (aquí sí van tildes)
 const EVENTOS_DISPONIBLES = [
     { valor: 'Acto Subestandar',      etiqueta: 'Acto Subestándar'      },
     { valor: 'Condicion Subestandar', etiqueta: 'Condición Subestándar' }
@@ -25,20 +22,16 @@ const EVENTOS_DISPONIBLES = [
 const ESTADOS_DISPONIBLES = ['Abierto', 'Cerrado'];
 const NOMBRE_ADMIN = 'Seguridad Industrial';
 
-// 🆕 Gerencias que ven TODOS los datos (pero NO pueden subir Excel)
 const GERENCIAS_ACCESO_TOTAL = [
     'GERENCIA GENERAL',
     'GERENCIA LEGAL Y RELAC LABORAL'
 ];
-// 🆕 Gerencias que NO deben mostrarse en los filtros ni en el login
 const GERENCIAS_EXCLUIDAS = [
     'Relaciones Laborales',
-    'GERENCIA LEGAL Y RELAC LABORAL' // Opcional, por si en hallazgos está con este nombre exacto
+    'GERENCIA LEGAL Y RELAC LABORAL'
 ];
-// 🆕 Años que NO deben mostrarse
 const ANIOS_EXCLUIDOS = ['2023'];
 
-// 🆕 Diccionario de correcciones ortográficas (solo visual)
 const CORRECCIONES_ORTOGRAFICAS = {
     'FABRICA':                        'FÁBRICA',
     'ELABORACION':                    'ELABORACIÓN',
@@ -91,12 +84,10 @@ function normalizarTexto(s) {
         .replace(/[\u0300-\u036f]/g, '');
 }
 
-// ¿Es admin real? (solo Seguridad Industrial puede subir Excel)
 function esAdminReal() {
     return usuarioActual && usuarioActual.esAdmin === true;
 }
 
-// ¿Ve todos los datos? (admin real + GERENCIA GENERAL + GERENCIA LEGAL)
 function usuarioVeTodo() {
     if (!usuarioActual) return false;
     if (usuarioActual.esAdmin) return true;
@@ -104,7 +95,6 @@ function usuarioVeTodo() {
     return GERENCIAS_ACCESO_TOTAL.some(g => normalizarTexto(g) === nombreNorm);
 }
 
-// ¿Puede subir Excel? (SOLO el admin real: Seguridad Industrial)
 function puedeSubirExcel() {
     return esAdminReal();
 }
@@ -120,6 +110,12 @@ function embellecer(texto) {
     if (!texto) return texto;
     const key = texto.toString().trim().toUpperCase();
     return CORRECCIONES_ORTOGRAFICAS[key] || texto;
+}
+
+function escaparAttr(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
 }
 
 // ==========================================
@@ -251,11 +247,7 @@ window.addEventListener('resize', () => {
 // ==========================================
 // 3. LOGIN
 // ==========================================
-// 🆕 Gerencias que NO quieres que aparezcan en el login
-// (se compara normalizado: sin tildes, sin mayúsculas, sin espacios extra)
-const GERENCIAS_EXCLUIDAS_LOGIN = [
-    'Relaciones Laborales'
-];
+const GERENCIAS_EXCLUIDAS_LOGIN = ['Relaciones Laborales'];
 
 async function cargarOpcionesLogin() {
     const { data, error } = await supabaseClient
@@ -268,22 +260,16 @@ async function cargarOpcionesLogin() {
     const sel = document.getElementById('login-gerencia');
     sel.innerHTML = '<option value="">Selecciona tu gerencia...</option>';
 
-    // ✅ Normalizar las excluidas para comparar de forma segura
     const excluidasNorm = GERENCIAS_EXCLUIDAS_LOGIN.map(normalizarTexto);
 
-    // ✅ Filtrar comparando normalizado
     const dataFiltrada = data.filter(g => {
         const nombreNorm = normalizarTexto(g.nombre);
-        const excluida = excluidasNorm.includes(nombreNorm);
-        if (excluida) console.log('🚫 Excluida del login:', JSON.stringify(g.nombre));
-        return !excluida;
+        return !excluidasNorm.includes(nombreNorm);
     });
 
     dataFiltrada.forEach(g => {
         sel.innerHTML += `<option value="${g.nombre}">${embellecer(g.nombre)}</option>`;
     });
-
-    console.log('✅ Gerencias cargadas en login:', dataFiltrada.map(g => g.nombre));
 }
 
 async function intentarLogin() {
@@ -314,9 +300,6 @@ async function intentarLogin() {
         return;
     }
 
-    // ⚠️ IMPORTANTE: Aquí asignamos esAdmin: false SIEMPRE.
-    // Aunque sea GERENCIA GENERAL o LEGAL, NO son admins reales.
-    // Solo verán todos los datos (usuarioVeTodo), pero NO podrán subir Excel.
     usuarioActual = { nombre: data[0].nombre, esAdmin: false };
     sessionStorage.setItem('usuario', JSON.stringify(usuarioActual));
     await iniciarDashboard();
@@ -364,7 +347,6 @@ async function iniciarDashboard() {
     const fondo = document.querySelector('.fondo-animado');
     if (fondo) fondo.style.display = 'none';
 
-    // ✅ SOLO el admin real (Seguridad Industrial) ve el panel de subir Excel
     if (puedeSubirExcel()) {
         const panelExcel = document.getElementById('admin-excel-panel');
         if (panelExcel) panelExcel.classList.remove('hidden');
@@ -378,6 +360,9 @@ async function iniciarDashboard() {
     await cargarDashboard();
     await cargarTabla();
     await dibujarGrafico();
+
+    // Realtime de fotos
+    suscribirRealtimeFotosHallazgos();
 }
 
 async function aplicarRestriccionesUsuario() {
@@ -475,7 +460,7 @@ async function cargarFiltros() {
     const { data: gerencias } = await qGer;
 
     const gerenciasUnicas = [...new Set(gerencias.map(g => g.DESC_AREA))]
-    .filter(g => !GERENCIAS_EXCLUIDAS.includes(g)) // <--- Filtro para excluir
+    .filter(g => !GERENCIAS_EXCLUIDAS.includes(g))
     .sort();
     const selGerencia = document.getElementById('filtro-gerencia');
     selGerencia.innerHTML = '<option value="">Todas</option>';
@@ -554,12 +539,12 @@ async function cargarDashboard() {
         elPorcentaje.textContent = `${porcentaje}%`;
         const numPct = parseFloat(porcentaje);
         if (numPct < 75) {
-    elPorcentaje.className = 'text-2xl sm:text-4xl md:text-5xl font-bold text-red-600 tracking-tight leading-none';
-} else if (numPct < 90) {
-    elPorcentaje.className = 'text-2xl sm:text-4xl md:text-5xl font-bold text-amber-500 tracking-tight leading-none';
-} else {
-    elPorcentaje.className = 'text-2xl sm:text-4xl md:text-5xl font-bold text-emerald-600 tracking-tight leading-none';
-}
+            elPorcentaje.className = 'text-2xl sm:text-4xl md:text-5xl font-bold text-red-600 tracking-tight leading-none';
+        } else if (numPct < 90) {
+            elPorcentaje.className = 'text-2xl sm:text-4xl md:text-5xl font-bold text-amber-500 tracking-tight leading-none';
+        } else {
+            elPorcentaje.className = 'text-2xl sm:text-4xl md:text-5xl font-bold text-emerald-600 tracking-tight leading-none';
+        }
 
     } catch (error) {
         console.error('❌ Error dashboard:', error.message);
@@ -829,7 +814,7 @@ function pintarGrafico(labels, dataC, dataP, esAcumulado, modo) {
                     }
                 }
             },
-                        scales: {
+            scales: {
                 y: {
                     beginAtZero: true,
                     ticks: { precision: 0, color: '#94a3b8', font: { size: 10, family: 'Inter' } },
@@ -937,6 +922,12 @@ async function cargarTabla() {
 
         if (error) throw error;
 
+        // Cargar SOLO metadatos de fotos de los hallazgos visibles
+        const idsVisibles = (data || []).map(h => h.COD_HALLAZGO).filter(Boolean);
+        if (idsVisibles.length > 0) {
+            await cargarImagenesHallazgos(idsVisibles);
+        }
+
         totalRegistros = count || 0;
         totalPaginas = Math.ceil(totalRegistros / registrosPorPagina) || 1;
 
@@ -950,12 +941,11 @@ async function cargarTabla() {
         const cardsContainer = document.getElementById('tabla-cards');
 
         if (!data || data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-12 text-slate-400 text-sm">No se encontraron hallazgos</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-12 text-slate-400 text-sm">No se encontraron hallazgos</td></tr>`;
             cardsContainer.innerHTML = `<div class="text-center py-12 text-slate-400 text-sm">No se encontraron hallazgos</div>`;
             return;
         }
 
-        // ✅ Función auxiliar para generar el badge de estado
         const generarBadge = (estado) => {
             if (estado === 'Cerrado') {
                 return '<span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>Cerrado</span>';
@@ -965,9 +955,7 @@ async function cargarTabla() {
             return `<span class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap">${estado || '-'}</span>`;
         };
 
-        // ============================================
-        // ✅ VISTA ESCRITORIO: tabla normal
-        // ============================================
+        // VISTA ESCRITORIO
         tbody.innerHTML = data.map(h => {
             const partes = (h.FECHA_ACONTECIMIENTO || '').split('/');
             const anioStr = partes[2] ? partes[2].substring(0, 4) : '';
@@ -980,14 +968,13 @@ async function cargarTabla() {
                     <td class="px-6 py-4 text-slate-600 text-xs whitespace-nowrap">${mesStr}</td>
                     <td class="px-6 py-4 text-slate-700 text-xs font-medium whitespace-nowrap">${embellecer(h.DESC_SECCION) || '-'}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${generarBadge(h.ESTADO)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">${botonFotosHallazgoHTML(h.COD_HALLAZGO)}</td>
                     <td class="px-6 py-4 text-slate-600 text-xs">${h.ACONTECIMIENTO || '-'}</td>
                 </tr>
             `;
         }).join('');
 
-        // ============================================
-        // ✅ VISTA MÓVIL: tarjetas
-        // ============================================
+        // VISTA MÓVIL
         cardsContainer.innerHTML = data.map(h => {
             const partes = (h.FECHA_ACONTECIMIENTO || '').split('/');
             const anioStr = partes[2] ? partes[2].substring(0, 4) : '';
@@ -1009,6 +996,10 @@ async function cargarTabla() {
                     <p class="text-xs text-slate-600 leading-relaxed pt-2 border-t border-slate-100 mt-2">
                         ${h.ACONTECIMIENTO || '-'}
                     </p>
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-100 mt-2">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Fotos</span>
+                        ${botonFotosHallazgoHTML(h.COD_HALLAZGO)}
+                    </div>
                 </div>
             `;
         }).join('');
@@ -1124,7 +1115,6 @@ if (btnToggleExcel) {
 }
 
 document.getElementById('btnSubirExcel').addEventListener('click', async () => {
-    // ✅ Doble verificación: solo el admin real puede subir
     if (!puedeSubirExcel()) {
         alert("⛔ No tienes permisos para subir el Excel. Solo Seguridad Industrial puede hacerlo.");
         return;
@@ -1150,11 +1140,10 @@ document.getElementById('btnSubirExcel').addEventListener('click', async () => {
         try {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
-            
-            // ✅ Forzar a leer la PRIMERA hoja del Excel
+
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
-            
+
             let jsonData = XLSX.utils.sheet_to_json(worksheet);
 
             if (jsonData.length === 0) {
@@ -1162,7 +1151,6 @@ document.getElementById('btnSubirExcel').addEventListener('click', async () => {
                 return;
             }
 
-            // ✅ LIMPIEZA: Eliminar la columna 'id' y columnas vacías
             jsonData = jsonData.map(row => {
                 const filaLimpia = {};
                 Object.keys(row).forEach(key => {
@@ -1173,8 +1161,6 @@ document.getElementById('btnSubirExcel').addEventListener('click', async () => {
                 });
                 return filaLimpia;
             });
-
-            console.log("Datos limpios listos para subir:", jsonData);
 
             const { error } = await supabaseClient
                 .from('hallazgos')
@@ -1205,5 +1191,296 @@ document.getElementById('btnSubirExcel').addEventListener('click', async () => {
     reader.readAsArrayBuffer(file);
 });
 
-// Iniciar la aplicación
+// ==========================================
+// 14. FOTOS DE HALLAZGOS
+// ==========================================
+let imagenesHallazgosCache = [];
+const hallazgosConFotosConsultados = new Set();
+let fotosHallazgoCtx = { hallazgoId: null };
+let realtimeFotosActivo = false;
+
+function contarFotosHallazgo(id) {
+    return imagenesHallazgosCache.filter(i => i.hallazgo_id === id).length;
+}
+
+function urlFotoHallazgo(path) {
+    const { data } = supabaseClient.storage.from('hallazgos-fotos').getPublicUrl(path);
+    return data.publicUrl;
+}
+
+function botonFotosHallazgoHTML(hallazgoId) {
+    const total = contarFotosHallazgo(hallazgoId);
+    return `
+        <button type="button"
+                class="btn-fotos-hallazgo ${total > 0 ? 'tiene-fotos' : ''}"
+                data-hallazgo-id="${escaparAttr(hallazgoId)}"
+                title="Ver fotos">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            <span>${total}</span>
+        </button>
+    `;
+}
+
+async function cargarImagenesHallazgos(idsHallazgos) {
+    const idsNuevos = (idsHallazgos || []).filter(id => id && !hallazgosConFotosConsultados.has(id));
+    if (idsNuevos.length === 0) return;
+
+    const { data, error } = await supabaseClient
+        .from('imagenes_hallazgos')
+        .select('id, hallazgo_id, storage_path, nombre, subido_por, created_at')
+        .in('hallazgo_id', idsNuevos);
+
+    if (error) { console.error('Error cargando fotos:', error); return; }
+
+    idsNuevos.forEach(id => hallazgosConFotosConsultados.add(id));
+    (data || []).forEach(img => {
+        if (!imagenesHallazgosCache.some(i => i.id === img.id)) {
+            imagenesHallazgosCache.push(img);
+        }
+    });
+}
+
+function actualizarContadoresFotosEnTabla() {
+    document.querySelectorAll('.btn-fotos-hallazgo').forEach(btn => {
+        const id = btn.dataset.hallazgoId;
+        if (!id) return;
+        const total = contarFotosHallazgo(id);
+        btn.classList.toggle('tiene-fotos', total > 0);
+        const span = btn.querySelector('span');
+        if (span) span.textContent = total;
+    });
+}
+
+async function comprimirImagenHallazgo(file, maxWidth = 1400, calidad = 0.78) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onerror = () => resolve(file);
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onerror = () => resolve(file);
+            img.onload = () => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    const escala = Math.min(1, maxWidth / img.width);
+                    canvas.width  = Math.round(img.width  * escala);
+                    canvas.height = Math.round(img.height * escala);
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                    canvas.toBlob(b => resolve(b || file), 'image/jpeg', calidad);
+                } catch { resolve(file); }
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function abrirModalFotosHallazgo(hallazgoId) {
+    fotosHallazgoCtx.hallazgoId = hallazgoId;
+    document.getElementById('foto-hallazgo-input').value = '';
+    renderFotosHallazgoModal();
+    const m = document.getElementById('modal-fotos-hallazgo');
+    m.classList.remove('hidden');
+    m.classList.add('flex');
+}
+
+function cerrarModalFotosHallazgo() {
+    const m = document.getElementById('modal-fotos-hallazgo');
+    m.classList.add('hidden');
+    m.classList.remove('flex');
+    fotosHallazgoCtx.hallazgoId = null;
+}
+
+function renderFotosHallazgoModal() {
+    const hallazgoId = fotosHallazgoCtx.hallazgoId;
+    if (!hallazgoId) return;
+
+    const fotos = imagenesHallazgosCache.filter(i => i.hallazgo_id === hallazgoId);
+    const grid = document.getElementById('fotos-hallazgo-grid');
+    const info = document.getElementById('modal-fotos-info');
+    const toolbar = document.getElementById('fotos-hallazgo-toolbar');
+
+    toolbar.classList.toggle('hidden', !esAdminReal());
+
+    info.textContent = fotos.length === 0
+        ? 'Sin fotos'
+        : `${fotos.length} foto${fotos.length > 1 ? 's' : ''}`;
+
+    if (fotos.length === 0) {
+        grid.innerHTML = `
+            <div class="col-span-full text-center py-12 text-slate-400">
+                <svg class="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <p class="text-sm">No hay fotos cargadas</p>
+            </div>`;
+        return;
+    }
+
+    const puedeBorrar = esAdminReal();
+    grid.innerHTML = '';
+    fotos.forEach((f, idx) => {
+        const url = urlFotoHallazgo(f.storage_path);
+        const item = document.createElement('div');
+        item.className = 'relative aspect-square rounded-xl overflow-hidden bg-slate-100 group';
+        item.innerHTML = `
+            <img src="${url}"
+                 alt="${escaparAttr(f.nombre)}"
+                 loading="${idx === 0 ? 'eager' : 'lazy'}"
+                 decoding="async"
+                 fetchpriority="${idx === 0 ? 'high' : 'low'}"
+                 class="w-full h-full object-cover cursor-zoom-in transition group-hover:scale-105"
+                 data-lightbox-url="${escaparAttr(url)}">
+            ${puedeBorrar ? `
+                <button type="button"
+                        class="absolute top-2 right-2 w-7 h-7 rounded-full bg-slate-900/70 hover:bg-red-600 text-white flex items-center justify-center text-xs backdrop-blur-sm transition"
+                        data-delete-id="${escaparAttr(f.id)}"
+                        data-delete-path="${escaparAttr(f.storage_path)}"
+                        title="Eliminar">✕</button>
+            ` : ''}
+        `;
+        grid.appendChild(item);
+    });
+}
+
+document.getElementById('fotos-hallazgo-grid').addEventListener('click', (e) => {
+    const img = e.target.closest('img[data-lightbox-url]');
+    if (img) return abrirLightboxHallazgo(img.dataset.lightboxUrl);
+    const btn = e.target.closest('button[data-delete-id]');
+    if (btn) return eliminarFotoHallazgo(btn.dataset.deleteId, btn.dataset.deletePath);
+});
+
+document.getElementById('tabla-body').addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-fotos-hallazgo');
+    if (btn) abrirModalFotosHallazgo(btn.dataset.hallazgoId);
+});
+document.getElementById('tabla-cards').addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-fotos-hallazgo');
+    if (btn) abrirModalFotosHallazgo(btn.dataset.hallazgoId);
+});
+
+function abrirLightboxHallazgo(url) {
+    document.getElementById('lightbox-hallazgo-img').src = url;
+    const lb = document.getElementById('lightbox-hallazgo');
+    lb.classList.remove('hidden');
+    lb.classList.add('flex');
+}
+function cerrarLightboxHallazgo() {
+    const lb = document.getElementById('lightbox-hallazgo');
+    lb.classList.add('hidden');
+    lb.classList.remove('flex');
+    document.getElementById('lightbox-hallazgo-img').src = '';
+}
+document.getElementById('lightbox-hallazgo').addEventListener('click', cerrarLightboxHallazgo);
+
+document.getElementById('btn-subir-foto-hallazgo').addEventListener('click', () => {
+    if (!esAdminReal()) return;
+    document.getElementById('foto-hallazgo-input').click();
+});
+
+document.getElementById('foto-hallazgo-input').addEventListener('change', async (e) => {
+    if (!esAdminReal()) { e.target.value = ''; return; }
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+        alert('Solo se permiten imágenes.');
+        e.target.value = '';
+        return;
+    }
+
+    const hallazgoId = fotosHallazgoCtx.hallazgoId;
+    if (!hallazgoId) { e.target.value = ''; return; }
+
+    const btn = document.getElementById('btn-subir-foto-hallazgo');
+    const original = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = 'Subiendo…';
+
+    try {
+        const blob = await comprimirImagenHallazgo(file);
+        const path = `${hallazgoId}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.jpg`;
+
+        const { error: errUp } = await supabaseClient.storage
+            .from('hallazgos-fotos')
+            .upload(path, blob, { cacheControl: '31536000', upsert: false, contentType: 'image/jpeg' });
+        if (errUp) throw errUp;
+
+        const { error: errIns } = await supabaseClient
+            .from('imagenes_hallazgos')
+            .insert({
+                hallazgo_id: hallazgoId,
+                nombre: file.name,
+                storage_path: path,
+                subido_por: usuarioActual?.nombre || null
+            });
+
+        if (errIns) {
+            await supabaseClient.storage.from('hallazgos-fotos').remove([path]);
+            throw errIns;
+        }
+
+        hallazgosConFotosConsultados.delete(hallazgoId);
+        await cargarImagenesHallazgos([hallazgoId]);
+        renderFotosHallazgoModal();
+        actualizarContadoresFotosEnTabla();
+
+    } catch (err) {
+        console.error(err);
+        alert('No se pudo subir la foto.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = original;
+        e.target.value = '';
+    }
+});
+
+async function eliminarFotoHallazgo(fotoId, storagePath) {
+    if (!esAdminReal()) return;
+    if (!confirm('¿Eliminar esta foto?')) return;
+
+    const { error: errDel } = await supabaseClient.storage
+        .from('hallazgos-fotos').remove([storagePath]);
+    if (errDel) { console.error(errDel); alert('No se pudo eliminar el archivo.'); return; }
+
+    await supabaseClient.from('imagenes_hallazgos').delete().eq('id', fotoId);
+
+    imagenesHallazgosCache = imagenesHallazgosCache.filter(i => i.id !== fotoId);
+    renderFotosHallazgoModal();
+    actualizarContadoresFotosEnTabla();
+}
+
+function suscribirRealtimeFotosHallazgos() {
+    if (realtimeFotosActivo) return;
+    realtimeFotosActivo = true;
+
+    supabaseClient
+        .channel('imagenes_hallazgos_rt')
+        .on('postgres_changes',
+            { event: '*', schema: 'public', table: 'imagenes_hallazgos' },
+            (payload) => {
+                if (payload.eventType === 'INSERT' && payload.new) {
+                    if (!imagenesHallazgosCache.some(i => i.id === payload.new.id)) {
+                        imagenesHallazgosCache.push(payload.new);
+                    }
+                    hallazgosConFotosConsultados.add(payload.new.hallazgo_id);
+                } else if (payload.eventType === 'DELETE' && payload.old) {
+                    imagenesHallazgosCache = imagenesHallazgosCache.filter(i => i.id !== payload.old.id);
+                }
+                actualizarContadoresFotosEnTabla();
+                if (document.getElementById('modal-fotos-hallazgo').classList.contains('flex')) {
+                    renderFotosHallazgoModal();
+                }
+            })
+        .subscribe();
+}
+
+// ==========================================
+// INICIO
+// ==========================================
 init();
