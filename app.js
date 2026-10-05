@@ -1383,19 +1383,18 @@ document.getElementById('btn-subir-foto-hallazgo').addEventListener('click', () 
     document.getElementById('foto-hallazgo-input').click();
 });
 
-document.getElementById('foto-hallazgo-input').addEventListener('change', async (e) => {
-    if (!esAdminReal()) { e.target.value = ''; return; }
-    const file = e.target.files[0];
+// ---- SUBIR ARCHIVO (reusable desde input, paste o drag) ----
+async function subirArchivoFoto(file) {
+    if (!esAdminReal()) return;
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
         alert('Solo se permiten imágenes.');
-        e.target.value = '';
         return;
     }
 
     const hallazgoId = fotosHallazgoCtx.hallazgoId;
-    if (!hallazgoId) { e.target.value = ''; return; }
+    if (!hallazgoId) return;
 
     const btn = document.getElementById('btn-subir-foto-hallazgo');
     const original = btn.innerHTML;
@@ -1415,7 +1414,7 @@ document.getElementById('foto-hallazgo-input').addEventListener('change', async 
             .from('imagenes_hallazgos')
             .insert({
                 hallazgo_id: hallazgoId,
-                nombre: file.name,
+                nombre: file.name || `pegada-${Date.now()}.jpg`,
                 storage_path: path,
                 subido_por: usuarioActual?.nombre || null
             });
@@ -1436,7 +1435,38 @@ document.getElementById('foto-hallazgo-input').addEventListener('change', async 
     } finally {
         btn.disabled = false;
         btn.innerHTML = original;
-        e.target.value = '';
+    }
+}
+
+// ---- Input file (soporta varias) ----
+document.getElementById('foto-hallazgo-input').addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    for (const f of files) {
+        await subirArchivoFoto(f);
+    }
+});
+
+// ---- Pegar con Ctrl+V ----
+document.addEventListener('paste', async (e) => {
+    const modal = document.getElementById('modal-fotos-hallazgo');
+    if (!modal || !modal.classList.contains('flex')) return;
+    if (!esAdminReal()) return;
+    if (!fotosHallazgoCtx.hallazgoId) return;
+
+    const items = (e.clipboardData && e.clipboardData.items) || [];
+    const files = [];
+    for (const it of items) {
+        if (it.kind === 'file' && it.type.startsWith('image/')) {
+            const f = it.getAsFile();
+            if (f) files.push(f);
+        }
+    }
+    if (files.length === 0) return;
+
+    e.preventDefault();
+    for (const f of files) {
+        await subirArchivoFoto(f);
     }
 });
 
