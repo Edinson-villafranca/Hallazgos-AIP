@@ -465,16 +465,24 @@
             </div>
             <div class="px-5 py-4 overflow-y-auto flex-1">
                 <div id="fotos-hallazgo-toolbar" class="mb-4 hidden">
-                    <button id="btn-subir-foto-hallazgo" type="button"
-                        class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition shadow-md">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                        </svg>
-                        Subir foto
-                    </button>
-                    <input type="file" id="foto-hallazgo-input" accept="image/*" class="hidden">
-                </div>
+    <div class="flex items-center gap-3 flex-wrap">
+        <button id="btn-subir-foto-hallazgo" type="button"
+            class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition shadow-md">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+            </svg>
+            Subir foto
+        </button>
+        <span class="text-xs text-slate-400 flex items-center gap-1">
+            o pega con
+            <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-200 rounded text-[10px] font-mono">Ctrl</kbd>
+            <span class="text-slate-300">+</span>
+            <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-200 rounded text-[10px] font-mono">V</kbd>
+        </span>
+    </div>
+    <input type="file" id="foto-hallazgo-input" accept="image/*" class="hidden" multiple>
+</div>
                 <div id="fotos-hallazgo-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"></div>
             </div>
         </div>
