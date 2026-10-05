@@ -11,11 +11,7 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
-        html, body {
-        overflow-x: hidden;
-        max-width: 100vw;
-        width: 100%;
-    }
+        html, body { overflow-x: hidden; max-width: 100vw; width: 100%; }
         .kpi-card { transition: transform .2s ease, box-shadow .2s ease; }
         .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.08); }
         .filter-chip { transition: all .15s ease; }
@@ -29,31 +25,14 @@
            FONDO ANIMADO — Login
            ============================================ */
         .fondo-animado {
-            position: absolute;
-            inset: 0;
-            overflow: hidden;
-            z-index: 0;
-            background: linear-gradient(180deg,
-                #ffb27a 0%,
-                #ff9d6b 25%,
-                #f4a259 45%,
-                #d98a4a 60%,
-                #8a7a3f 80%,
-                #4a5a2a 100%);
+            position: absolute; inset: 0; overflow: hidden; z-index: 0;
+            background: linear-gradient(180deg, #ffb27a 0%, #ff9d6b 25%, #f4a259 45%, #d98a4a 60%, #8a7a3f 80%, #4a5a2a 100%);
         }
         .sol {
-            position: absolute;
-            top: 42%;
-            left: 50%;
+            position: absolute; top: 42%; left: 50%;
             transform: translate(-50%, -50%);
-            width: 42vmin;
-            height: 42vmin;
-            border-radius: 50%;
-            background: radial-gradient(circle,
-                rgba(255, 235, 190, 0.95) 0%,
-                rgba(255, 200, 130, 0.55) 30%,
-                rgba(255, 170, 100, 0.15) 60%,
-                transparent 75%);
+            width: 42vmin; height: 42vmin; border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,235,190,0.95) 0%, rgba(255,200,130,0.55) 30%, rgba(255,170,100,0.15) 60%, transparent 75%);
             filter: blur(8px);
             animation: pulsoSol 8s ease-in-out infinite;
         }
@@ -64,48 +43,18 @@
         .nubes { position: absolute; inset: 0; pointer-events: none; }
         .nube {
             position: absolute;
-            background: radial-gradient(ellipse at center,
-                rgba(255, 220, 190, 0.65) 0%,
-                rgba(255, 200, 170, 0.25) 40%,
-                transparent 70%);
-            border-radius: 50%;
-            filter: blur(30px);
+            background: radial-gradient(ellipse at center, rgba(255,220,190,0.65) 0%, rgba(255,200,170,0.25) 40%, transparent 70%);
+            border-radius: 50%; filter: blur(30px);
         }
         .n1 { width: 60vmin; height: 18vmin; top: 15%; left: -20%; animation: deriva 90s linear infinite; }
         .n2 { width: 45vmin; height: 14vmin; top: 28%; left: -30%; animation: deriva 120s linear infinite 15s; opacity: .7; }
         .n3 { width: 70vmin; height: 20vmin; top: 8%;  left: -40%; animation: deriva 140s linear infinite 30s; opacity: .55; }
-        @keyframes deriva {
-            from { transform: translateX(0); }
-            to   { transform: translateX(160vw); }
-        }
-        .colina {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 45%;
-            opacity: 0.9;
-            pointer-events: none;
-        }
-        .canas {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 75%;
-            pointer-events: none;
-        }
-        .cana {
-            position: absolute;
-            bottom: 0;
-            transform-origin: bottom center;
-            will-change: transform;
-        }
+        @keyframes deriva { from { transform: translateX(0); } to { transform: translateX(160vw); } }
+        .colina { position: absolute; bottom: 0; left: 0; width: 100%; height: 45%; opacity: 0.9; pointer-events: none; }
+        .canas { position: absolute; bottom: 0; left: 0; right: 0; height: 75%; pointer-events: none; }
+        .cana { position: absolute; bottom: 0; transform-origin: bottom center; will-change: transform; }
         .cana svg {
-            display: block;
-            height: 100%;
-            width: auto;
-            overflow: visible;
+            display: block; height: 100%; width: auto; overflow: visible;
             transform-origin: bottom center;
             animation: viento var(--dur, 4s) ease-in-out infinite alternate;
             animation-delay: var(--delay, 0s);
@@ -118,21 +67,12 @@
             animation: hojaOndula var(--durHoja, 3s) ease-in-out infinite alternate;
             animation-delay: var(--delayHoja, 0s);
         }
-        @keyframes hojaOndula {
-            0%   { transform: rotate(-3deg); }
-            100% { transform: rotate(4deg);  }
-        }
+        @keyframes hojaOndula { 0% { transform: rotate(-3deg); } 100% { transform: rotate(4deg); } }
         .atmosfera {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
+            position: absolute; inset: 0; pointer-events: none;
             background:
-                radial-gradient(ellipse at 50% 45%,
-                    rgba(255, 220, 170, 0.25) 0%,
-                    transparent 55%),
-                radial-gradient(ellipse at center,
-                    transparent 55%,
-                    rgba(60, 40, 20, 0.35) 100%);
+                radial-gradient(ellipse at 50% 45%, rgba(255,220,170,0.25) 0%, transparent 55%),
+                radial-gradient(ellipse at center, transparent 55%, rgba(60,40,20,0.35) 100%);
             mix-blend-mode: soft-light;
         }
         @media (max-width: 768px) {
@@ -141,6 +81,42 @@
         }
         @media (prefers-reduced-motion: reduce) {
             .cana svg, .hoja, .nube, .sol { animation: none !important; }
+        }
+
+        /* ============================================
+           BOTÓN DE FOTOS EN LA TABLA
+           ============================================ */
+        .btn-fotos-hallazgo {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            background: #fff;
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .15s ease;
+            min-width: 52px;
+            justify-content: center;
+            font-family: inherit;
+        }
+        .btn-fotos-hallazgo:hover {
+            background: #ecfdf5;
+            border-color: #10b981;
+            color: #059669;
+        }
+        .btn-fotos-hallazgo.tiene-fotos {
+            background: #ecfdf5;
+            border-color: #a7f3d0;
+            color: #065f46;
+        }
+        .btn-fotos-hallazgo.tiene-fotos:hover {
+            background: #10b981;
+            border-color: #10b981;
+            color: #fff;
         }
     </style>
 </head>
@@ -157,8 +133,7 @@
                 <div class="nube n3"></div>
             </div>
             <svg class="colina" viewBox="0 0 1440 400" preserveAspectRatio="none">
-                <path d="M0,220 C300,180 500,260 720,230 C940,200 1150,270 1440,220 L1440,400 L0,400 Z"
-                      fill="url(#gradColina)"/>
+                <path d="M0,220 C300,180 500,260 720,230 C940,200 1150,270 1440,220 L1440,400 L0,400 Z" fill="url(#gradColina)"/>
                 <defs>
                     <linearGradient id="gradColina" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stop-color="#5a6b3a"/>
@@ -254,7 +229,6 @@
     <!-- ==================== DASHBOARD ==================== -->
     <div id="app-principal" class="hidden">
 
-        <!-- ✅ MÓVIL: header más compacto -->
         <header class="bg-white border-b border-slate-200 sticky top-0 z-20">
             <div class="max-w-[1600px] mx-auto px-3 sm:px-6 py-3 sm:py-4 flex justify-between items-center gap-2 sm:gap-4">
                 <div class="flex items-center gap-2 sm:gap-4 min-w-0">
@@ -265,7 +239,7 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2 sm:gap-4 relative">
-                    
+
                     <!-- BOTÓN DE EXCEL (ADMIN) -->
                     <div id="admin-excel-panel" class="hidden relative">
                         <button id="btn-toggle-excel" class="bg-emerald-600 hover:bg-emerald-700 text-white p-2 sm:p-2.5 rounded-xl shadow-md transition-all duration-200 flex items-center justify-center hover:scale-105">
@@ -274,7 +248,6 @@
                             </svg>
                         </button>
 
-                        <!-- ✅ MÓVIL: panel más angosto y limitado al viewport -->
                         <div id="excel-panel-content" class="hidden absolute top-12 sm:top-14 right-0 bg-white rounded-2xl shadow-2xl border border-slate-200 p-4 w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] z-50">
                             <div class="flex items-center justify-between mb-3">
                                 <div class="flex items-center gap-2">
@@ -291,7 +264,7 @@
                                     </svg>
                                 </button>
                             </div>
-                            <input type="file" id="inputExcel" accept=".xlsx, .xls" 
+                            <input type="file" id="inputExcel" accept=".xlsx, .xls"
                                 class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer border border-slate-200 rounded-lg p-1">
                             <button id="btnSubirExcel" class="w-full mt-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold py-2.5 rounded-xl transition shadow-lg shadow-emerald-600/20">
                                 Subir y Actualizar
@@ -314,54 +287,48 @@
             </div>
         </header>
 
-        <!-- ✅ MÓVIL: padding más pequeño -->
         <main class="max-w-[1600px] mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-6">
 
             <!-- Filtros -->
             <div class="relative bg-white rounded-2xl border border-slate-200 overflow-hidden">
                 <div class="h-1 bg-gradient-to-r from-emerald-700 via-emerald-600 to-red-600"></div>
                 <div class="p-3 sm:p-5">
-                    <!-- ✅ MÓVIL: 2 cols en móvil, 3 en tablet, 5 en desktop -->
                     <div class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-5 items-start">
-
-    <!-- ✅ COLUMNA IZQUIERDA EN MÓVIL: Evento + Estado -->
-    <div class="flex flex-col gap-3 md:contents min-w-0">
-        <div class="md:order-2 min-w-0">
-            <label class="text-[10px] sm:text-xs font-extrabold text-slate-900 mb-1.5 sm:mb-2 block tracking-widest uppercase">Evento</label>
-            <div id="filtro-evento-botones" class="flex flex-col gap-1.5"></div>
-        </div>
-        <div class="md:order-3">
-            <label class="text-[10px] sm:text-xs font-extrabold text-slate-900 mb-1.5 sm:mb-2 block tracking-widest uppercase">Estado</label>
-            <div id="filtro-estado-botones" class="flex flex-col gap-1.5"></div>
-        </div>
-    </div>
-
-    <!-- ✅ COLUMNA DERECHA EN MÓVIL: Año + Gerencia + Área -->
-    <div class="flex flex-col gap-3 md:contents min-w-0">
-        <div class="md:order-1">
-            <label class="text-[10px] sm:text-xs font-extrabold text-slate-900 mb-1.5 sm:mb-2 block tracking-widest uppercase">Año</label>
-            <select id="filtro-anio" class="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-2 sm:px-3 text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition cursor-pointer hover:border-slate-300">
-                <option value="">Todos</option>
-            </select>
-        </div>
-        <div class="md:order-4">
-            <label class="text-[10px] sm:text-xs font-extrabold text-slate-900 mb-1.5 sm:mb-2 block tracking-widest uppercase">Gerencia</label>
-            <select id="filtro-gerencia" class="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-2 sm:px-3 text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition cursor-pointer hover:border-slate-300">
-                <option value="">Todas</option>
-            </select>
-        </div>
-        <div class="md:order-5">
-            <label class="text-[10px] sm:text-xs font-extrabold text-slate-900 mb-1.5 sm:mb-2 block tracking-widest uppercase">Área</label>
-            <select id="filtro-area" class="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-2 sm:px-3 text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition cursor-pointer hover:border-slate-300">
-                <option value="">Todas</option>
-            </select>
-        </div>
-    </div>
-</div>
+                        <div class="flex flex-col gap-3 md:contents min-w-0">
+                            <div class="md:order-2 min-w-0">
+                                <label class="text-[10px] sm:text-xs font-extrabold text-slate-900 mb-1.5 sm:mb-2 block tracking-widest uppercase">Evento</label>
+                                <div id="filtro-evento-botones" class="flex flex-col gap-1.5"></div>
+                            </div>
+                            <div class="md:order-3">
+                                <label class="text-[10px] sm:text-xs font-extrabold text-slate-900 mb-1.5 sm:mb-2 block tracking-widest uppercase">Estado</label>
+                                <div id="filtro-estado-botones" class="flex flex-col gap-1.5"></div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-3 md:contents min-w-0">
+                            <div class="md:order-1">
+                                <label class="text-[10px] sm:text-xs font-extrabold text-slate-900 mb-1.5 sm:mb-2 block tracking-widest uppercase">Año</label>
+                                <select id="filtro-anio" class="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-2 sm:px-3 text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition cursor-pointer hover:border-slate-300">
+                                    <option value="">Todos</option>
+                                </select>
+                            </div>
+                            <div class="md:order-4">
+                                <label class="text-[10px] sm:text-xs font-extrabold text-slate-900 mb-1.5 sm:mb-2 block tracking-widest uppercase">Gerencia</label>
+                                <select id="filtro-gerencia" class="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-2 sm:px-3 text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition cursor-pointer hover:border-slate-300">
+                                    <option value="">Todas</option>
+                                </select>
+                            </div>
+                            <div class="md:order-5">
+                                <label class="text-[10px] sm:text-xs font-extrabold text-slate-900 mb-1.5 sm:mb-2 block tracking-widest uppercase">Área</label>
+                                <select id="filtro-area" class="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-2 sm:px-3 text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition cursor-pointer hover:border-slate-300">
+                                    <option value="">Todas</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- KPIs -->
-            <!-- ✅ MÓVIL: 2 cols en móvil, 4 en desktop -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
                 <div class="kpi-card bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-1 h-full bg-slate-800"></div>
@@ -430,7 +397,6 @@
                         </button>
                     </div>
                 </div>
-                <!-- ✅ MÓVIL: altura adaptativa -->
                 <div class="p-2 sm:p-6 h-64 sm:h-80 md:h-96">
                     <canvas id="grafico-area"></canvas>
                 </div>
@@ -443,7 +409,6 @@
                         <h2 class="text-sm sm:text-base font-bold text-slate-900 tracking-tight">Hallazgos Detallados</h2>
                         <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5"><span id="contador-tabla" class="font-semibold text-slate-700">0</span> hallazgos encontrados</p>
                     </div>
-                    <!-- ✅ MÓVIL: buscador full width -->
                     <div class="relative w-full sm:w-auto">
                         <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -453,9 +418,9 @@
                     </div>
                 </div>
 
-                <!-- ✅ VISTA ESCRITORIO: tabla normal (oculta en móvil) -->
+                <!-- VISTA ESCRITORIO: tabla normal -->
                 <div class="overflow-x-auto hidden md:block">
-                    <table class="w-full text-sm" style="min-width: 1200px;">
+                    <table class="w-full text-sm" style="min-width: 1300px;">
                         <thead>
                             <tr class="border-b border-slate-200 bg-slate-50/50">
                                 <th class="text-left px-6 py-3 font-semibold text-[11px] text-slate-500 tracking-widest uppercase whitespace-nowrap">Código</th>
@@ -468,12 +433,12 @@
                             </tr>
                         </thead>
                         <tbody id="tabla-body" class="divide-y divide-slate-100">
-                            <tr><td colspan="6" class="text-center py-12 text-slate-400 text-sm">Cargando hallazgos...</td></tr>
+                            <tr><td colspan="7" class="text-center py-12 text-slate-400 text-sm">Cargando hallazgos...</td></tr>
                         </tbody>
                     </table>
                 </div>
 
-                <!-- ✅ VISTA MÓVIL: tarjetas (oculta en desktop) -->
+                <!-- VISTA MÓVIL: tarjetas -->
                 <div id="tabla-cards" class="md:hidden divide-y divide-slate-100">
                     <div class="text-center py-12 text-slate-400 text-sm">Cargando hallazgos...</div>
                 </div>
@@ -486,6 +451,38 @@
             </div>
 
         </main>
+    </div>
+
+    <!-- ==================== MODAL DE FOTOS ==================== -->
+    <div id="modal-fotos-hallazgo" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+                <div class="min-w-0">
+                    <h3 class="text-base font-bold text-slate-900 truncate">Fotos del hallazgo</h3>
+                    <p id="modal-fotos-info" class="text-xs text-slate-500 mt-0.5">—</p>
+                </div>
+                <button onclick="cerrarModalFotosHallazgo()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none p-1">×</button>
+            </div>
+            <div class="px-5 py-4 overflow-y-auto flex-1">
+                <div id="fotos-hallazgo-toolbar" class="mb-4 hidden">
+                    <button id="btn-subir-foto-hallazgo" type="button"
+                        class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition shadow-md">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                        </svg>
+                        Subir foto
+                    </button>
+                    <input type="file" id="foto-hallazgo-input" accept="image/*" class="hidden">
+                </div>
+                <div id="fotos-hallazgo-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== LIGHTBOX ==================== -->
+    <div id="lightbox-hallazgo" class="fixed inset-0 bg-black/90 z-[200] hidden items-center justify-center p-6 cursor-zoom-out">
+        <img id="lightbox-hallazgo-img" src="" alt="" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl">
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
