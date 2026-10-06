@@ -1,3 +1,4 @@
+// ==========================================
 // VARIABLES GLOBALES
 // ==========================================
 let miGrafico = null;
@@ -15,6 +16,8 @@ let mesSeleccionado = '';
 
 // Vista actual: 'hallazgos' | 'actos'
 let vistaActual = 'hallazgos';
+// Sub-vista dentro de actos: 'indicadores' | 'faltas'
+let subVistaActos = 'indicadores';
 // Mes seleccionado en Actos Inseguros (1-12)
 let mesActosSeleccionado = new Date().getMonth() + 1;
 
@@ -124,7 +127,6 @@ function escaparHTML(s) {
     }[c]));
 }
 
-// Extrae año y mes (1-12) de "dd/mm/yyyy"
 function parsearFechaHallazgo(fecha) {
     const partes = (fecha || '').split('/');
     if (partes.length !== 3) return { anio: null, mes: null };
@@ -341,7 +343,6 @@ async function iniciarDashboard() {
         if (panelExcel) panelExcel.classList.remove('hidden');
     }
 
-    // Tabs visibles solo para admin + Gerencia General/Legal
     if (usuarioVeTodo()) {
         const tabsNav = document.getElementById('tabs-nav');
         if (tabsNav) tabsNav.classList.remove('hidden');
@@ -356,8 +357,8 @@ async function iniciarDashboard() {
     await cargarDashboard();
     await cargarTabla();
     await dibujarGrafico();
+    await cargarCatalogoFaltas();
 
-    // Realtime de fotos
     suscribirRealtimeFotosHallazgos();
 }
 
@@ -375,13 +376,12 @@ async function aplicarRestriccionesUsuario() {
 }
 
 // ==========================================
-// 5. TABS: HALLAZGOS <-> ACTOS INSEGUROS
+// 5. TABS: HALLAZGOS <-> ACTOS + SUB-TABS
 // ==========================================
 function cambiarVista(vista) {
     if (vista === vistaActual) return;
     vistaActual = vista;
 
-    // Solo permitir 'actos' a quien tenga permiso
     if (vista === 'actos' && !usuarioVeTodo()) {
         vistaActual = 'hallazgos';
         return;
@@ -402,9 +402,35 @@ function cambiarVista(vista) {
         vActos.classList.remove('hidden');
         tabH.classList.remove('tab-btn-active');
         tabA.classList.add('tab-btn-active');
-        cargarActosInseguros();
+
+        if (subVistaActos === 'faltas') cargarRankingFaltas();
+        else cargarActosInseguros();
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function cambiarSubVistaActos(sub) {
+    if (sub === subVistaActos) return;
+    subVistaActos = sub;
+
+    const btnInd = document.getElementById('subt-tab-indicadores');
+    const btnFal = document.getElementById('subt-tab-faltas');
+    const viewInd = document.getElementById('subt-vista-indicadores');
+    const viewFal = document.getElementById('subt-vista-faltas');
+
+    if (sub === 'indicadores') {
+        btnInd.classList.add('tab-btn-active');
+        btnFal.classList.remove('tab-btn-active');
+        viewInd.classList.remove('hidden');
+        viewFal.classList.add('hidden');
+        cargarActosInseguros();
+    } else {
+        btnInd.classList.remove('tab-btn-active');
+        btnFal.classList.add('tab-btn-active');
+        viewInd.classList.add('hidden');
+        viewFal.classList.remove('hidden');
+        cargarRankingFaltas();
+    }
 }
 
 // ==========================================
@@ -470,19 +496,15 @@ function renderizarBotonesMesActos() {
     const cont = document.getElementById('meses-actos');
     if (!cont) return;
 
-    // Calcular hasta qué mes mostrar
     const hoy = new Date();
     const anioHoy = hoy.getFullYear();
-    const mesHoy  = hoy.getMonth() + 1; // 1-12
+    const mesHoy  = hoy.getMonth() + 1;
 
     let mesLimite = 12;
     if (anioHoy === ANIO_ACTOS) mesLimite = mesHoy;
     else if (anioHoy > ANIO_ACTOS) mesLimite = 12;
 
-    // Si el mes seleccionado está fuera del rango, ajustarlo al actual
-    if (mesActosSeleccionado > mesLimite) {
-        mesActosSeleccionado = mesHoy;
-    }
+    if (mesActosSeleccionado > mesLimite) mesActosSeleccionado = mesHoy;
 
     cont.innerHTML = '';
     for (let i = 1; i <= mesLimite; i++) {
@@ -1133,9 +1155,13 @@ document.getElementById('admin-password').addEventListener('keypress', (e) => { 
 
 document.getElementById('btn-logout').addEventListener('click', cerrarSesion);
 
-// Tabs
+// Tabs principales
 document.getElementById('tab-hallazgos').addEventListener('click', () => cambiarVista('hallazgos'));
 document.getElementById('tab-actos').addEventListener('click', () => cambiarVista('actos'));
+
+// Sub-tabs de Actos
+document.getElementById('subt-tab-indicadores').addEventListener('click', () => cambiarSubVistaActos('indicadores'));
+document.getElementById('subt-tab-faltas').addEventListener('click', () => cambiarSubVistaActos('faltas'));
 
 // ==========================================
 // 13. INIT
@@ -1231,8 +1257,12 @@ document.getElementById('btnSubirExcel').addEventListener('click', async () => {
                 alert(`❌ Error al actualizar: ${error.message}\n\nVerifica que los nombres de las columnas del Excel coincidan exactamente con los de la base de datos y que 'COD_HALLAZGO' sea UNIQUE.`);
             } else {
                 alert(`✅ ¡Base de datos actualizada correctamente!\n\nSe procesaron ${jsonData.length} registros.`);
+                actosTodosCache = null;
                 await refrescarTodo();
-                if (vistaActual === 'actos') await cargarActosInseguros();
+                if (vistaActual === 'actos') {
+                    if (subVistaActos === 'faltas') cargarRankingFaltas();
+                    else cargarActosInseguros();
+                }
                 fileInput.value = '';
                 excelPanelContent.classList.add('hidden');
             }
@@ -1476,7 +1506,6 @@ async function subirArchivoFoto(file) {
             .upload(path, blob, { cacheControl: '31536000', upsert: false, contentType: 'image/jpeg' });
         if (errUp) throw errUp;
 
-        // Si es la primera foto del hallazgo → marcar como destacada por defecto
         const esLaPrimera = contarFotosHallazgo(hallazgoId) === 0;
 
         const { error: errIns } = await supabaseClient
@@ -1498,7 +1527,7 @@ async function subirArchivoFoto(file) {
         await cargarImagenesHallazgos([hallazgoId]);
         renderFotosHallazgoModal();
         actualizarContadoresFotosEnTabla();
-        if (vistaActual === 'actos') renderGridActos();
+        if (vistaActual === 'actos' && subVistaActos === 'indicadores') renderGridActos();
 
     } catch (err) {
         console.error(err);
@@ -1515,7 +1544,6 @@ document.getElementById('foto-hallazgo-input').addEventListener('change', async 
     for (const f of files) await subirArchivoFoto(f);
 });
 
-// ---- Pegar con Ctrl+V ----
 document.addEventListener('paste', async (e) => {
     const modal = document.getElementById('modal-fotos-hallazgo');
     if (!modal || modal.classList.contains('hidden')) return;
@@ -1548,32 +1576,28 @@ async function eliminarFotoHallazgo(fotoId, storagePath) {
     imagenesHallazgosCache = imagenesHallazgosCache.filter(i => i.id !== fotoId);
     renderFotosHallazgoModal();
     actualizarContadoresFotosEnTabla();
-    if (vistaActual === 'actos') renderGridActos();
+    if (vistaActual === 'actos' && subVistaActos === 'indicadores') renderGridActos();
 }
 
-// ---- Marcar foto como destacada ----
 async function marcarDestacada(hallazgoId, fotoId) {
     if (!esAdminReal()) return;
 
-    // Quitar destacada a todas las fotos del hallazgo
     await supabaseClient
         .from('imagenes_hallazgos')
         .update({ destacada: false })
         .eq('hallazgo_id', hallazgoId);
 
-    // Marcar la seleccionada
     await supabaseClient
         .from('imagenes_hallazgos')
         .update({ destacada: true })
         .eq('id', fotoId);
 
-    // Actualizar cache local
     imagenesHallazgosCache.forEach(i => {
         if (i.hallazgo_id === hallazgoId) i.destacada = (i.id === fotoId);
     });
 
     renderFotosHallazgoModal();
-    if (vistaActual === 'actos') renderGridActos();
+    if (vistaActual === 'actos' && subVistaActos === 'indicadores') renderGridActos();
 }
 
 function suscribirRealtimeFotosHallazgos() {
@@ -1601,7 +1625,7 @@ function suscribirRealtimeFotosHallazgos() {
                 if (!document.getElementById('modal-fotos-hallazgo').classList.contains('hidden')) {
                     renderFotosHallazgoModal();
                 }
-                if (vistaActual === 'actos') renderGridActos();
+                if (vistaActual === 'actos' && subVistaActos === 'indicadores') renderGridActos();
             })
         .subscribe();
 }
@@ -1609,47 +1633,39 @@ function suscribirRealtimeFotosHallazgos() {
 // ==========================================
 // 16. ACTOS INSEGUROS
 // ==========================================
-let actosInsegurosCache = [];          // todos los actos (2025 + 2026)
-let actosDelMesCache = [];             // actos del mes seleccionado en 2026
-let kpiActosCargado = false;
+let actosTodosCache = null;
+let actosDelMesCache = [];
 let editarActoCtx = { hallazgoId: null };
 
 const ANIO_ACTOS = 2026;
 const ANIO_ACTOS_ANTERIOR = 2025;
 
+// -------- CARGA PRINCIPAL --------
 async function cargarActosInseguros() {
     await cargarKPIActos();
     await cargarActosDelMes(mesActosSeleccionado);
 }
 
-// -------- KPI TABLE (siempre fija, no filtra) --------
-// Muestra solo los meses transcurridos del año calendario (Ene...mesActual)
-// Cuando el sistema cambia de mes, los nuevos aparecen automáticamente.
+// -------- KPI TABLE (todo el año, no filtra) --------
 function aplicarVisibilidadMesesKPI() {
     const hoy = new Date();
     const anioHoy = hoy.getFullYear();
-    const mesHoy  = hoy.getMonth() + 1; // 1-12
+    const mesHoy  = hoy.getMonth() + 1;
 
-    // Si estamos en el año de ANIO_ACTOS → hasta el mes actual
-    // Si estamos en un año posterior → los 12
-    // Si estamos antes → los 12 (nada que ocultar todavía)
     let mesLimite = 12;
     if (anioHoy === ANIO_ACTOS) mesLimite = mesHoy;
     else if (anioHoy > ANIO_ACTOS) mesLimite = 12;
 
     for (let i = 1; i <= 12; i++) {
         const mostrar = i <= mesLimite;
-
-        // Ocultar el <th> del mes
         const th = document.querySelector(`[data-kpi-mes="${i}"]`);
         if (th) th.style.display = mostrar ? '' : 'none';
-
-        // Ocultar las celdas (data-kpi termina en -N: 2025-N, iden-N, cerr-N, pct-N)
         document.querySelectorAll(`[data-kpi$="-${i}"]`).forEach(td => {
             td.style.display = mostrar ? '' : 'none';
         });
     }
 }
+
 async function cargarKPIActos() {
     const { data, error } = await supabaseClient
         .from('hallazgos')
@@ -1659,7 +1675,8 @@ async function cargarKPIActos() {
         .range(0, 9999);
 
     if (error) { console.error('Error KPI actos:', error); return; }
-      aplicarVisibilidadMesesKPI(); 
+
+    aplicarVisibilidadMesesKPI();
 
     const result = {
         2025:       Array(12).fill(0),
@@ -1680,14 +1697,12 @@ async function cargarKPIActos() {
         }
     });
 
-    // % cumplimiento
     for (let i = 0; i < 12; i++) {
         result.pct[i] = result.iden2026[i] > 0
             ? (result.cerr2026[i] / result.iden2026[i]) * 100
             : 0;
     }
 
-    // Render
     for (let i = 1; i <= 12; i++) {
         setKpiText(`2025-${i}`, result[2025][i-1]);
         setKpiText(`iden-${i}`, result.iden2026[i-1]);
@@ -1711,24 +1726,30 @@ function setKpiText(key, valor) {
     if (el) el.textContent = valor;
 }
 
-// -------- ACTOS DEL MES --------
+// -------- ACTOS DEL MES (cache + filtro JS) --------
 async function cargarActosDelMes(mes) {
-    const mesStr = String(mes).padStart(2, '0');
+    if (!actosTodosCache) {
+        const { data, error } = await supabaseClient
+            .from('hallazgos')
+            .select('"COD_HALLAZGO","FECHA_ACONTECIMIENTO","DESC_SECCION","ACONTECIMIENTO","descripcion_acto"')
+            .eq('"DESC_EVENTO"', 'Acto Subestandar')
+            .neq('"ESTADO"', 'Anulado')
+            .order('"FECHA_ACONTECIMIENTO"', { ascending: true });
 
-    const { data, error } = await supabaseClient
-        .from('hallazgos')
-        .select('"COD_HALLAZGO","FECHA_ACONTECIMIENTO","DESC_SECCION","ACONTECIMIENTO","descripcion_acto"')
-        .eq('"DESC_EVENTO"', 'Acto Subestandar')
-        .neq('"ESTADO"', 'Anulado')
-        .like('"FECHA_ACONTECIMIENTO"', `%/${ANIO_ACTOS}%`)
-        .like('"FECHA_ACONTECIMIENTO"', `%/${mesStr}/%`)
-        .order('"FECHA_ACONTECIMIENTO"', { ascending: true });
+        if (error) {
+            console.error('Error cargando actos:', error);
+            document.getElementById('grid-actos').innerHTML =
+                `<div class="col-span-full text-center py-12 text-red-500 text-sm">Error: ${error.message}</div>`;
+            return;
+        }
+        actosTodosCache = data || [];
+    }
 
-    if (error) { console.error('Error actos del mes:', error); return; }
+    actosDelMesCache = actosTodosCache.filter(a => {
+        const { anio, mes: m } = parsearFechaHallazgo(a.FECHA_ACONTECIMIENTO);
+        return anio === String(ANIO_ACTOS) && m === mes;
+    });
 
-    actosDelMesCache = data || [];
-
-    // Cargar fotos de esos actos
     const ids = actosDelMesCache.map(a => a.COD_HALLAZGO).filter(Boolean);
     if (ids.length > 0) await cargarImagenesHallazgos(ids);
 
@@ -1777,7 +1798,7 @@ function renderGridActos() {
                     </button>
                 ` : ''}
             </div>
-            <div class="p-4">
+            <div class="p-3 sm:p-4">
                 <p class="text-[10px] font-bold text-emerald-700 tracking-wider uppercase mb-1">${escaparHTML(codigo)}</p>
                 <p class="acto-card-hint-editable text-xs text-slate-700 leading-relaxed"
                    data-action="${admin ? 'editar' : 'nada'}"
@@ -1785,7 +1806,6 @@ function renderGridActos() {
             </div>
         `;
 
-        // Click handlers
         card.querySelector('.acto-card-foto').addEventListener('click', (e) => {
             if (e.target.closest('[data-action="fotos"]')) return;
             if (url) abrirLightboxHallazgo(url);
@@ -1815,11 +1835,26 @@ function obtenerFotoDestacada(hallazgoId) {
     return destacada || fotos[0];
 }
 
-// -------- MODAL EDITAR TEXTO --------
-function abrirModalEditarActo(hallazgoId, textoActual) {
+// ==========================================
+// 17. MODAL EDITAR TEXTO + FALTAS
+// ==========================================
+let catalogoFaltasCache = [];
+let faltasDelActoActual = [];
+
+async function abrirModalEditarActo(hallazgoId, textoActual) {
     if (!esAdminReal()) return;
     editarActoCtx.hallazgoId = hallazgoId;
     document.getElementById('editar-acto-texto').value = textoActual || '';
+
+    if (catalogoFaltasCache.length === 0) await cargarCatalogoFaltas();
+
+    faltasDelActoActual = await cargarFaltasDelActo(hallazgoId);
+    renderChipsFaltas();
+
+    const inp = document.getElementById('falta-buscar');
+    inp.value = '';
+    document.getElementById('falta-sugerencias').classList.add('hidden');
+
     const m = document.getElementById('modal-editar-acto');
     m.classList.remove('hidden');
     m.classList.add('flex');
@@ -1831,6 +1866,7 @@ function cerrarModalEditarActo() {
     m.classList.add('hidden');
     m.classList.remove('flex');
     editarActoCtx.hallazgoId = null;
+    faltasDelActoActual = [];
 }
 
 document.getElementById('btn-guardar-acto').addEventListener('click', async () => {
@@ -1851,13 +1887,255 @@ document.getElementById('btn-guardar-acto').addEventListener('click', async () =
         return;
     }
 
-    // Actualizar cache local
     const acto = actosDelMesCache.find(a => a.COD_HALLAZGO === hallazgoId);
     if (acto) acto.descripcion_acto = nuevoTexto || null;
+    if (actosTodosCache) {
+        const a2 = actosTodosCache.find(a => a.COD_HALLAZGO === hallazgoId);
+        if (a2) a2.descripcion_acto = nuevoTexto || null;
+    }
 
     cerrarModalEditarActo();
     renderGridActos();
 });
+
+// ---------- CATÁLOGO ----------
+async function cargarCatalogoFaltas() {
+    const { data, error } = await supabaseClient
+        .from('catalogo_faltas')
+        .select('id, nombre')
+        .eq('activo', true)
+        .order('nombre');
+    if (error) { console.error(error); return; }
+    catalogoFaltasCache = data || [];
+}
+
+function buscarFaltas(query) {
+    const q = normalizarTexto(query || '');
+    const base = q
+        ? catalogoFaltasCache.filter(f => normalizarTexto(f.nombre).includes(q))
+        : catalogoFaltasCache;
+    return base.slice(0, 30);
+}
+
+async function cargarFaltasDelActo(hallazgoId) {
+    const { data, error } = await supabaseClient
+        .from('hallazgo_faltas')
+        .select('falta_id, catalogo_faltas(id, nombre)')
+        .eq('hallazgo_id', hallazgoId);
+    if (error) { console.error(error); return []; }
+    return (data || []).map(d => ({
+        falta_id: d.falta_id,
+        nombre: d.catalogo_faltas?.nombre || `Falta #${d.falta_id}`
+    }));
+}
+
+async function agregarFaltaAlActo(hallazgoId, faltaId) {
+    const { error } = await supabaseClient
+        .from('hallazgo_faltas')
+        .insert({ hallazgo_id: hallazgoId, falta_id: faltaId });
+    if (error && !String(error.message || '').includes('duplicate')) {
+        console.error(error); return false;
+    }
+    return true;
+}
+
+async function quitarFaltaDelActo(hallazgoId, faltaId) {
+    const { error } = await supabaseClient
+        .from('hallazgo_faltas')
+        .delete()
+        .eq('hallazgo_id', hallazgoId)
+        .eq('falta_id', faltaId);
+    if (error) { console.error(error); return false; }
+    return true;
+}
+
+async function crearFaltaNueva(nombre) {
+    const limpio = nombre.trim();
+    if (!limpio) return null;
+    const { data, error } = await supabaseClient
+        .from('catalogo_faltas')
+        .insert({ nombre: limpio, activo: true })
+        .select()
+        .single();
+    if (error) { console.error(error); return null; }
+    catalogoFaltasCache.push(data);
+    catalogoFaltasCache.sort((a, b) => a.nombre.localeCompare(b.nombre));
+    return data;
+}
+
+// ---------- CHIPS ----------
+function renderChipsFaltas() {
+    const cont = document.getElementById('faltas-chips');
+    if (!cont) return;
+    if (faltasDelActoActual.length === 0) {
+        cont.innerHTML = '<p class="text-xs text-slate-400 italic">Sin faltas asignadas</p>';
+        return;
+    }
+    cont.innerHTML = faltasDelActoActual.map(f => `
+        <span class="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-2.5 py-1 rounded-full">
+            ${escaparHTML(f.nombre)}
+            <button type="button" data-quitar-falta="${f.falta_id}" class="text-emerald-600 hover:text-red-600 leading-none text-sm" title="Quitar">×</button>
+        </span>
+    `).join('');
+    cont.querySelectorAll('[data-quitar-falta]').forEach(btn => {
+        btn.addEventListener('click', () => quitarFaltaUI(parseInt(btn.dataset.quitarFalta)));
+    });
+}
+
+async function quitarFaltaUI(faltaId) {
+    const hallazgoId = editarActoCtx.hallazgoId;
+    if (!hallazgoId) return;
+    if (!confirm('¿Quitar esta falta del acto?')) return;
+    const ok = await quitarFaltaDelActo(hallazgoId, faltaId);
+    if (ok) {
+        faltasDelActoActual = faltasDelActoActual.filter(f => f.falta_id !== faltaId);
+        renderChipsFaltas();
+    }
+}
+
+// ---------- AUTOCOMPLETE ----------
+function renderSugerenciasFaltas(query) {
+    const box = document.getElementById('falta-sugerencias');
+    const yaAsignadas = new Set(faltasDelActoActual.map(f => f.falta_id));
+    const coincidencias = buscarFaltas(query).filter(f => !yaAsignadas.has(f.id));
+
+    let html = '';
+    coincidencias.forEach(f => {
+        html += `<button type="button" data-add-falta="${f.id}"
+            class="w-full text-left px-4 py-2.5 hover:bg-emerald-50 text-sm border-b border-slate-100 last:border-0 transition">
+            ${escaparHTML(f.nombre)}
+        </button>`;
+    });
+
+    const q = (query || '').trim();
+    const existeExacta = q && catalogoFaltasCache.some(f => normalizarTexto(f.nombre) === normalizarTexto(q));
+    if (q && !existeExacta) {
+        html += `<button type="button" data-crear-falta="1"
+            class="w-full text-left px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-sm border-t-2 border-emerald-200 text-emerald-800 font-semibold flex items-center gap-2 transition">
+            <span class="text-base leading-none">＋</span> Crear nueva: "${escaparHTML(q)}"
+        </button>`;
+    }
+
+    if (!html) {
+        box.classList.add('hidden');
+        return;
+    }
+    box.innerHTML = html;
+    box.classList.remove('hidden');
+
+    box.querySelectorAll('[data-add-falta]').forEach(btn => {
+        btn.addEventListener('click', () => asignarFaltaUI(parseInt(btn.dataset.addFalta)));
+    });
+    const btnCrear = box.querySelector('[data-crear-falta]');
+    if (btnCrear) btnCrear.addEventListener('click', () => crearFaltaUI(query));
+}
+
+async function asignarFaltaUI(faltaId) {
+    const hallazgoId = editarActoCtx.hallazgoId;
+    if (!hallazgoId) return;
+    const ok = await agregarFaltaAlActo(hallazgoId, faltaId);
+    if (!ok) { alert('No se pudo asignar la falta.'); return; }
+    const falta = catalogoFaltasCache.find(f => f.id === faltaId);
+    if (falta && !faltasDelActoActual.some(f => f.falta_id === faltaId)) {
+        faltasDelActoActual.push({ falta_id: faltaId, nombre: falta.nombre });
+    }
+    renderChipsFaltas();
+    document.getElementById('falta-buscar').value = '';
+    document.getElementById('falta-sugerencias').classList.add('hidden');
+}
+
+async function crearFaltaUI(query) {
+    const nombre = (query || '').trim();
+    if (!nombre) return;
+    const nueva = await crearFaltaNueva(nombre);
+    if (!nueva) { alert('No se pudo crear la falta.'); return; }
+    await asignarFaltaUI(nueva.id);
+}
+
+(function initAutocompleteFaltas() {
+    const inp = document.getElementById('falta-buscar');
+    const box = document.getElementById('falta-sugerencias');
+    if (!inp) return;
+
+    inp.addEventListener('input', () => renderSugerenciasFaltas(inp.value));
+    inp.addEventListener('focus', () => renderSugerenciasFaltas(inp.value));
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#falta-buscar') && !e.target.closest('#falta-sugerencias')) {
+            box.classList.add('hidden');
+        }
+    });
+})();
+
+// ==========================================
+// 18. RANKING DE FALTAS
+// ==========================================
+async function cargarRankingFaltas() {
+    const tbody = document.getElementById('ranking-faltas-body');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center py-12 text-slate-400 text-sm">Cargando…</td></tr>';
+
+    const { data: actos, error: errA } = await supabaseClient
+        .from('hallazgos')
+        .select('"COD_HALLAZGO"')
+        .eq('"DESC_EVENTO"', 'Acto Subestandar')
+        .neq('"ESTADO"', 'Anulado')
+        .like('"FECHA_ACONTECIMIENTO"', '%/2026%');
+
+    if (errA) { console.error(errA); renderRankingFaltas([]); return; }
+
+    const ids = (actos || []).map(a => a.COD_HALLAZGO).filter(Boolean);
+    if (ids.length === 0) { renderRankingFaltas([]); return; }
+
+    const { data, error } = await supabaseClient
+        .from('hallazgo_faltas')
+        .select('falta_id, catalogo_faltas(nombre)')
+        .in('hallazgo_id', ids);
+
+    if (error) { console.error(error); renderRankingFaltas([]); return; }
+
+    const conteo = {};
+    (data || []).forEach(r => {
+        const id = r.falta_id;
+        const nombre = r.catalogo_faltas?.nombre || `Falta #${id}`;
+        if (!conteo[id]) conteo[id] = { falta_id: id, nombre, cantidad: 0 };
+        conteo[id].cantidad++;
+    });
+
+    const ranking = Object.values(conteo).sort((a, b) => b.cantidad - a.cantidad);
+    renderRankingFaltas(ranking);
+}
+
+function renderRankingFaltas(ranking) {
+    const tbody = document.getElementById('ranking-faltas-body');
+    const sub = document.getElementById('ranking-subtitulo');
+    if (!tbody) return;
+
+    if (ranking.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12 text-slate-400 text-sm">Aún no hay faltas etiquetadas en actos de 2026.</td></tr>`;
+        if (sub) sub.textContent = 'Sin datos';
+        return;
+    }
+
+    const total = ranking.reduce((acc, r) => acc + r.cantidad, 0);
+    if (sub) sub.textContent = `${total} etiqueta${total !== 1 ? 's' : ''} en ${ranking.length} falta${ranking.length !== 1 ? 's' : ''} distinta${ranking.length !== 1 ? 's' : ''}`;
+
+    tbody.innerHTML = ranking.map((r, i) => {
+        const pct = total > 0 ? (r.cantidad / total) * 100 : 0;
+        return `
+            <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 text-slate-500 font-semibold">${i + 1}</td>
+                <td class="px-4 py-3 text-slate-800 font-medium">${escaparHTML(r.nombre)}</td>
+                <td class="px-4 py-3 text-center font-bold text-slate-900">${r.cantidad}</td>
+                <td class="px-4 py-3 text-center text-slate-600 text-xs">${pct.toFixed(1)}%</td>
+                <td class="px-4 py-3">
+                    <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-emerald-500 rounded-full" style="width:${pct}%"></div>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
 
 // ==========================================
 // INICIO
