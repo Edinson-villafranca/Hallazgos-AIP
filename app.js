@@ -1,4 +1,3 @@
-// ==========================================
 // VARIABLES GLOBALES
 // ==========================================
 let miGrafico = null;
@@ -13,6 +12,11 @@ let usuarioActual = null;
 let eventoSeleccionado = '';
 let estadoSeleccionado = '';
 let mesSeleccionado = '';
+
+// Vista actual: 'hallazgos' | 'actos'
+let vistaActual = 'hallazgos';
+// Mes seleccionado en Actos Inseguros (1-12)
+let mesActosSeleccionado = new Date().getMonth() + 1;
 
 const EVENTOS_DISPONIBLES = [
     { valor: 'Acto Subestandar',      etiqueta: 'Acto Subestándar'      },
@@ -73,15 +77,11 @@ const MESES_CORTOS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct
 function nombreMes(n) { return MESES_NOMBRES[n] || ''; }
 
 // ==========================================
-// 1b. HELPERS DE PERMISOS, ORTOGRAFÍA Y EXCLUSIÓN
+// 1b. HELPERS
 // ==========================================
 function normalizarTexto(s) {
-    return (s || '')
-        .toString()
-        .trim()
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '');
+    return (s || '').toString().trim().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
 function esAdminReal() {
@@ -118,46 +118,51 @@ function escaparAttr(s) {
     }[c]));
 }
 
+function escaparHTML(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
+}
+
+// Extrae año y mes (1-12) de "dd/mm/yyyy"
+function parsearFechaHallazgo(fecha) {
+    const partes = (fecha || '').split('/');
+    if (partes.length !== 3) return { anio: null, mes: null };
+    return {
+        anio: partes[2] ? partes[2].substring(0, 4) : null,
+        mes: parseInt(partes[1]) || null
+    };
+}
+
 // ==========================================
-// 2. FONDO ANIMADO: CAÑAVERAL REALISTA
+// 2. FONDO ANIMADO
 // ==========================================
 function generarCanaveral() {
     const cont = document.getElementById('canas');
     if (!cont) return;
     cont.innerHTML = '';
-
     const esMovil = window.innerWidth < 768;
     const totalBack = esMovil ? 15 : 25;
     const totalFront = esMovil ? 30 : 55;
-
-    for (let i = 0; i < totalBack; i++) {
-        cont.appendChild(crearCana(i, totalBack, true));
-    }
-    for (let i = 0; i < totalFront; i++) {
-        cont.appendChild(crearCana(i, totalFront, false));
-    }
+    for (let i = 0; i < totalBack; i++) cont.appendChild(crearCana(i, totalBack, true));
+    for (let i = 0; i < totalFront; i++) cont.appendChild(crearCana(i, totalFront, false));
 }
 
 function crearCana(index, total, esBack) {
     const cana = document.createElement('div');
     cana.className = 'cana' + (esBack ? ' cana-back' : '');
-
     const posBase = index / total;
     const leftPct = posBase * 108 - 4 + (Math.random() * 3 - 1.5);
     cana.style.left = leftPct + '%';
-
     const profundidad = esBack ? Math.random() * 0.35 : 0.35 + Math.random() * 0.65;
     const altura = esBack ? 40 + profundidad * 25 : 55 + profundidad * 45;
     cana.style.height = altura + '%';
-
     const dur = esBack ? 4.5 + Math.random() * 2 : 3 + Math.random() * 2;
     cana.style.setProperty('--dur', dur.toFixed(2) + 's');
     cana.style.setProperty('--delay', (-Math.random() * 4).toFixed(2) + 's');
-
     cana.style.zIndex = esBack
         ? String(Math.round(profundidad * 50))
         : String(100 + Math.round(profundidad * 100));
-
     cana.innerHTML = generarSVGCana(index, esBack);
     return cana;
 }
@@ -171,23 +176,18 @@ function generarSVGCana(index, esBack) {
         { stalk: '#98A855', leafA: '#B0BE68', leafB: '#6B7D35' }
     ];
     const col = paleta[Math.floor(Math.random() * paleta.length)];
-
     const idStalk = `stalk_${index}_${esBack ? 'b' : 'f'}`;
     const idLeaf = `leaf_${index}_${esBack ? 'b' : 'f'}`;
-
     const topStalk = 60 + Math.random() * 80;
     const numHojas = 5 + Math.floor(Math.random() * 4);
     let hojas = '';
-
     for (let h = 0; h < numHojas; h++) {
         const frac = h / (numHojas - 1);
         const y = topStalk + 20 + Math.pow(frac, 0.75) * (480 - topStalk - 20);
-
         const dir = h % 2 === 0 ? 1 : -1;
         const L = 22 + Math.random() * 22;
         const durHoja = (2 + Math.random() * 2).toFixed(2);
         const delayHoja = (-Math.random() * 3).toFixed(2);
-
         const x0 = 50;
         const d = `
             M ${x0},${y}
@@ -196,20 +196,14 @@ function generarSVGCana(index, esBack) {
             Q ${x0 + dir * L * 0.45},${y - L * 0.15} ${x0},${y}
             Z
         `;
-
         hojas += `
-            <path class="hoja"
-                  d="${d}"
-                  fill="url(#${idLeaf})"
-                  stroke="${col.leafB}"
-                  stroke-width="0.4"
-                  stroke-opacity="0.7"
+            <path class="hoja" d="${d}" fill="url(#${idLeaf})"
+                  stroke="${col.leafB}" stroke-width="0.4" stroke-opacity="0.7"
                   style="transform-origin: ${x0}px ${y}px;
                          --durHoja: ${durHoja}s;
                          --delayHoja: ${delayHoja}s;" />
         `;
     }
-
     return `
         <svg viewBox="0 0 100 500" preserveAspectRatio="xMidYMax meet">
             <defs>
@@ -223,10 +217,8 @@ function generarSVGCana(index, esBack) {
                     <stop offset="100%" stop-color="${col.stalk}"/>
                 </linearGradient>
             </defs>
-
             <path d="M 48.5,500 Q 49,300 49.5,${topStalk} L 50.5,${topStalk} Q 51,300 51.5,500 Z"
                   fill="url(#${idStalk})"/>
-
             ${hojas}
         </svg>
     `;
@@ -259,14 +251,11 @@ async function cargarOpcionesLogin() {
 
     const sel = document.getElementById('login-gerencia');
     sel.innerHTML = '<option value="">Selecciona tu gerencia...</option>';
-
     const excluidasNorm = GERENCIAS_EXCLUIDAS_LOGIN.map(normalizarTexto);
-
     const dataFiltrada = data.filter(g => {
         const nombreNorm = normalizarTexto(g.nombre);
         return !excluidasNorm.includes(nombreNorm);
     });
-
     dataFiltrada.forEach(g => {
         sel.innerHTML += `<option value="${g.nombre}">${embellecer(g.nombre)}</option>`;
     });
@@ -352,8 +341,15 @@ async function iniciarDashboard() {
         if (panelExcel) panelExcel.classList.remove('hidden');
     }
 
+    // Tabs visibles solo para admin + Gerencia General/Legal
+    if (usuarioVeTodo()) {
+        const tabsNav = document.getElementById('tabs-nav');
+        if (tabsNav) tabsNav.classList.remove('hidden');
+    }
+
     renderizarBotonesEvento();
     renderizarBotonesEstado();
+    renderizarBotonesMesActos();
 
     await cargarFiltros();
     await aplicarRestriccionesUsuario();
@@ -367,13 +363,11 @@ async function iniciarDashboard() {
 
 async function aplicarRestriccionesUsuario() {
     const selGerencia = document.getElementById('filtro-gerencia');
-
     if (usuarioVeTodo()) {
         selGerencia.disabled = false;
         selGerencia.classList.remove('bg-slate-100', 'cursor-not-allowed', 'text-slate-500');
         return;
     }
-
     selGerencia.value = usuarioActual.nombre;
     selGerencia.disabled = true;
     selGerencia.classList.add('bg-slate-100', 'cursor-not-allowed', 'text-slate-500');
@@ -381,7 +375,40 @@ async function aplicarRestriccionesUsuario() {
 }
 
 // ==========================================
-// 5. BOTONES EVENTO / ESTADO
+// 5. TABS: HALLAZGOS <-> ACTOS INSEGUROS
+// ==========================================
+function cambiarVista(vista) {
+    if (vista === vistaActual) return;
+    vistaActual = vista;
+
+    // Solo permitir 'actos' a quien tenga permiso
+    if (vista === 'actos' && !usuarioVeTodo()) {
+        vistaActual = 'hallazgos';
+        return;
+    }
+
+    const vHallazgos = document.getElementById('vista-hallazgos');
+    const vActos = document.getElementById('vista-actos');
+    const tabH = document.getElementById('tab-hallazgos');
+    const tabA = document.getElementById('tab-actos');
+
+    if (vista === 'hallazgos') {
+        vHallazgos.classList.remove('hidden');
+        vActos.classList.add('hidden');
+        tabH.classList.add('tab-btn-active');
+        tabA.classList.remove('tab-btn-active');
+    } else {
+        vHallazgos.classList.add('hidden');
+        vActos.classList.remove('hidden');
+        tabH.classList.remove('tab-btn-active');
+        tabA.classList.add('tab-btn-active');
+        cargarActosInseguros();
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ==========================================
+// 6. BOTONES EVENTO / ESTADO
 // ==========================================
 function renderizarBotonesEvento() {
     const generarBotones = (esGrafico) => EVENTOS_DISPONIBLES.map(e => {
@@ -437,7 +464,44 @@ function renderizarBotonesEstado() {
 }
 
 // ==========================================
-// 6. FILTROS
+// 6b. BOTONES DE MES (Actos Inseguros)
+// ==========================================
+function renderizarBotonesMesActos() {
+    const cont = document.getElementById('meses-actos');
+    if (!cont) return;
+
+    // Calcular hasta qué mes mostrar
+    const hoy = new Date();
+    const anioHoy = hoy.getFullYear();
+    const mesHoy  = hoy.getMonth() + 1; // 1-12
+
+    let mesLimite = 12;
+    if (anioHoy === ANIO_ACTOS) mesLimite = mesHoy;
+    else if (anioHoy > ANIO_ACTOS) mesLimite = 12;
+
+    // Si el mes seleccionado está fuera del rango, ajustarlo al actual
+    if (mesActosSeleccionado > mesLimite) {
+        mesActosSeleccionado = mesHoy;
+    }
+
+    cont.innerHTML = '';
+    for (let i = 1; i <= mesLimite; i++) {
+        const activo = mesActosSeleccionado === i;
+        const btn = document.createElement('button');
+        btn.className = 'mes-btn ' + (activo ? 'mes-btn-active' : '');
+        btn.dataset.mes = i;
+        btn.textContent = MESES_CORTOS[i - 1];
+        btn.addEventListener('click', () => {
+            mesActosSeleccionado = i;
+            renderizarBotonesMesActos();
+            cargarActosInseguros();
+        });
+        cont.appendChild(btn);
+    }
+}
+
+// ==========================================
+// 7. FILTROS
 // ==========================================
 async function cargarFiltros() {
     let qFechas = supabaseClient.from('hallazgos').select('"FECHA_ACONTECIMIENTO"').neq('"ESTADO"', 'Anulado');
@@ -460,8 +524,8 @@ async function cargarFiltros() {
     const { data: gerencias } = await qGer;
 
     const gerenciasUnicas = [...new Set(gerencias.map(g => g.DESC_AREA))]
-    .filter(g => !GERENCIAS_EXCLUIDAS.includes(g))
-    .sort();
+        .filter(g => !GERENCIAS_EXCLUIDAS.includes(g))
+        .sort();
     const selGerencia = document.getElementById('filtro-gerencia');
     selGerencia.innerHTML = '<option value="">Todas</option>';
     gerenciasUnicas.forEach(g => selGerencia.innerHTML += `<option value="${g}">${embellecer(g)}</option>`);
@@ -497,7 +561,7 @@ function obtenerFiltros() {
 }
 
 // ==========================================
-// 7. TARJETAS
+// 8. TARJETAS (KPIs)
 // ==========================================
 async function cargarDashboard() {
     try {
@@ -552,7 +616,7 @@ async function cargarDashboard() {
 }
 
 // ==========================================
-// 8. GRÁFICO
+// 9. GRÁFICO
 // ==========================================
 async function dibujarGrafico() {
     const { anio, evento, estado, gerencia, area } = obtenerFiltros();
@@ -847,7 +911,7 @@ function pintarGrafico(labels, dataC, dataP, esAcumulado, modo) {
 }
 
 // ==========================================
-// 9. CLIC EN BARRAS
+// 10. CLIC EN BARRAS
 // ==========================================
 async function manejarClickBarra(modo, label) {
     if (modo === 'por-anio') {
@@ -891,7 +955,7 @@ document.getElementById('btn-volver-grafico').addEventListener('click', async ()
 });
 
 // ==========================================
-// 10. TABLA
+// 11. TABLA PRINCIPAL
 // ==========================================
 async function cargarTabla() {
     try {
@@ -922,11 +986,8 @@ async function cargarTabla() {
 
         if (error) throw error;
 
-        // Cargar SOLO metadatos de fotos de los hallazgos visibles
         const idsVisibles = (data || []).map(h => h.COD_HALLAZGO).filter(Boolean);
-        if (idsVisibles.length > 0) {
-            await cargarImagenesHallazgos(idsVisibles);
-        }
+        if (idsVisibles.length > 0) await cargarImagenesHallazgos(idsVisibles);
 
         totalRegistros = count || 0;
         totalPaginas = Math.ceil(totalRegistros / registrosPorPagina) || 1;
@@ -955,12 +1016,9 @@ async function cargarTabla() {
             return `<span class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap">${estado || '-'}</span>`;
         };
 
-        // VISTA ESCRITORIO
         tbody.innerHTML = data.map(h => {
-            const partes = (h.FECHA_ACONTECIMIENTO || '').split('/');
-            const anioStr = partes[2] ? partes[2].substring(0, 4) : '';
-            const mesStr = partes[1] ? nombreMes(parseInt(partes[1])) : '';
-
+            const { anio: anioStr, mes } = parsearFechaHallazgo(h.FECHA_ACONTECIMIENTO);
+            const mesStr = mes ? nombreMes(mes) : '';
             return `
                 <tr class="row-hover transition">
                     <td class="px-6 py-4 font-semibold text-slate-800 text-xs whitespace-nowrap">${h.COD_HALLAZGO || '-'}</td>
@@ -974,12 +1032,9 @@ async function cargarTabla() {
             `;
         }).join('');
 
-        // VISTA MÓVIL
         cardsContainer.innerHTML = data.map(h => {
-            const partes = (h.FECHA_ACONTECIMIENTO || '').split('/');
-            const anioStr = partes[2] ? partes[2].substring(0, 4) : '';
-            const mesStr = partes[1] ? nombreMes(parseInt(partes[1])) : '';
-
+            const { anio: anioStr, mes } = parsearFechaHallazgo(h.FECHA_ACONTECIMIENTO);
+            const mesStr = mes ? nombreMes(mes) : '';
             return `
                 <div class="p-4 space-y-2 hover:bg-slate-50 transition">
                     <div class="flex justify-between items-start gap-3">
@@ -1010,7 +1065,7 @@ async function cargarTabla() {
 }
 
 // ==========================================
-// 11. EVENTOS
+// 12. EVENTOS
 // ==========================================
 document.getElementById('btn-prev').addEventListener('click', () => {
     if (paginaActual > 1) { paginaActual--; cargarTabla(); }
@@ -1078,8 +1133,12 @@ document.getElementById('admin-password').addEventListener('keypress', (e) => { 
 
 document.getElementById('btn-logout').addEventListener('click', cerrarSesion);
 
+// Tabs
+document.getElementById('tab-hallazgos').addEventListener('click', () => cambiarVista('hallazgos'));
+document.getElementById('tab-actos').addEventListener('click', () => cambiarVista('actos'));
+
 // ==========================================
-// 12. INIT
+// 13. INIT
 // ==========================================
 async function init() {
     await cargarOpcionesLogin();
@@ -1091,7 +1150,7 @@ async function init() {
 }
 
 // ==========================================
-// 13. LÓGICA DE SUBIDA DE EXCEL (ADMIN)
+// 14. EXCEL (ADMIN)
 // ==========================================
 const btnToggleExcel = document.getElementById('btn-toggle-excel');
 const excelPanelContent = document.getElementById('excel-panel-content');
@@ -1140,10 +1199,8 @@ document.getElementById('btnSubirExcel').addEventListener('click', async () => {
         try {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
-
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
-
             let jsonData = XLSX.utils.sheet_to_json(worksheet);
 
             if (jsonData.length === 0) {
@@ -1175,6 +1232,7 @@ document.getElementById('btnSubirExcel').addEventListener('click', async () => {
             } else {
                 alert(`✅ ¡Base de datos actualizada correctamente!\n\nSe procesaron ${jsonData.length} registros.`);
                 await refrescarTodo();
+                if (vistaActual === 'actos') await cargarActosInseguros();
                 fileInput.value = '';
                 excelPanelContent.classList.add('hidden');
             }
@@ -1192,7 +1250,7 @@ document.getElementById('btnSubirExcel').addEventListener('click', async () => {
 });
 
 // ==========================================
-// 14. FOTOS DE HALLAZGOS
+// 15. FOTOS DE HALLAZGOS
 // ==========================================
 let imagenesHallazgosCache = [];
 const hallazgosConFotosConsultados = new Set();
@@ -1232,7 +1290,7 @@ async function cargarImagenesHallazgos(idsHallazgos) {
 
     const { data, error } = await supabaseClient
         .from('imagenes_hallazgos')
-        .select('id, hallazgo_id, storage_path, nombre, subido_por, created_at')
+        .select('id, hallazgo_id, storage_path, nombre, subido_por, created_at, destacada')
         .in('hallazgo_id', idsNuevos);
 
     if (error) { console.error('Error cargando fotos:', error); return; }
@@ -1286,6 +1344,7 @@ function abrirModalFotosHallazgo(hallazgoId) {
     const m = document.getElementById('modal-fotos-hallazgo');
     m.classList.remove('hidden');
     m.classList.add('flex');
+    setTimeout(() => m.focus(), 50);
 }
 
 function cerrarModalFotosHallazgo() {
@@ -1328,6 +1387,7 @@ function renderFotosHallazgoModal() {
         const url = urlFotoHallazgo(f.storage_path);
         const item = document.createElement('div');
         item.className = 'relative aspect-square rounded-xl overflow-hidden bg-slate-100 group';
+        const esDestacada = f.destacada === true;
         item.innerHTML = `
             <img src="${url}"
                  alt="${escaparAttr(f.nombre)}"
@@ -1338,10 +1398,18 @@ function renderFotosHallazgoModal() {
                  data-lightbox-url="${escaparAttr(url)}">
             ${puedeBorrar ? `
                 <button type="button"
+                        class="foto-destacada-star ${esDestacada ? 'activa' : ''}"
+                        data-star-id="${escaparAttr(f.id)}"
+                        data-star-hallazgo="${escaparAttr(hallazgoId)}"
+                        title="${esDestacada ? 'Foto destacada' : 'Marcar como destacada'}">★</button>
+                <button type="button"
                         class="absolute top-2 right-2 w-7 h-7 rounded-full bg-slate-900/70 hover:bg-red-600 text-white flex items-center justify-center text-xs backdrop-blur-sm transition"
                         data-delete-id="${escaparAttr(f.id)}"
                         data-delete-path="${escaparAttr(f.storage_path)}"
                         title="Eliminar">✕</button>
+            ` : ''}
+            ${esDestacada && !puedeBorrar ? `
+                <span class="absolute top-2 left-2 w-7 h-7 rounded-full bg-amber-400 text-white flex items-center justify-center text-sm shadow-lg">★</span>
             ` : ''}
         `;
         grid.appendChild(item);
@@ -1349,6 +1417,8 @@ function renderFotosHallazgoModal() {
 }
 
 document.getElementById('fotos-hallazgo-grid').addEventListener('click', (e) => {
+    const star = e.target.closest('button[data-star-id]');
+    if (star) return marcarDestacada(star.dataset.starHallazgo, star.dataset.starId);
     const img = e.target.closest('img[data-lightbox-url]');
     if (img) return abrirLightboxHallazgo(img.dataset.lightboxUrl);
     const btn = e.target.closest('button[data-delete-id]');
@@ -1383,15 +1453,11 @@ document.getElementById('btn-subir-foto-hallazgo').addEventListener('click', () 
     document.getElementById('foto-hallazgo-input').click();
 });
 
-// ---- SUBIR ARCHIVO (reusable desde input, paste o drag) ----
+// ---- SUBIR ARCHIVO ----
 async function subirArchivoFoto(file) {
     if (!esAdminReal()) return;
     if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-        alert('Solo se permiten imágenes.');
-        return;
-    }
+    if (!file.type.startsWith('image/')) { alert('Solo se permiten imágenes.'); return; }
 
     const hallazgoId = fotosHallazgoCtx.hallazgoId;
     if (!hallazgoId) return;
@@ -1410,13 +1476,17 @@ async function subirArchivoFoto(file) {
             .upload(path, blob, { cacheControl: '31536000', upsert: false, contentType: 'image/jpeg' });
         if (errUp) throw errUp;
 
+        // Si es la primera foto del hallazgo → marcar como destacada por defecto
+        const esLaPrimera = contarFotosHallazgo(hallazgoId) === 0;
+
         const { error: errIns } = await supabaseClient
             .from('imagenes_hallazgos')
             .insert({
                 hallazgo_id: hallazgoId,
                 nombre: file.name || `pegada-${Date.now()}.jpg`,
                 storage_path: path,
-                subido_por: usuarioActual?.nombre || null
+                subido_por: usuarioActual?.nombre || null,
+                destacada: esLaPrimera
             });
 
         if (errIns) {
@@ -1428,6 +1498,7 @@ async function subirArchivoFoto(file) {
         await cargarImagenesHallazgos([hallazgoId]);
         renderFotosHallazgoModal();
         actualizarContadoresFotosEnTabla();
+        if (vistaActual === 'actos') renderGridActos();
 
     } catch (err) {
         console.error(err);
@@ -1438,19 +1509,16 @@ async function subirArchivoFoto(file) {
     }
 }
 
-// ---- Input file (soporta varias) ----
 document.getElementById('foto-hallazgo-input').addEventListener('change', async (e) => {
     const files = Array.from(e.target.files || []);
     e.target.value = '';
-    for (const f of files) {
-        await subirArchivoFoto(f);
-    }
+    for (const f of files) await subirArchivoFoto(f);
 });
 
 // ---- Pegar con Ctrl+V ----
 document.addEventListener('paste', async (e) => {
     const modal = document.getElementById('modal-fotos-hallazgo');
-    if (!modal || !modal.classList.contains('flex')) return;
+    if (!modal || modal.classList.contains('hidden')) return;
     if (!esAdminReal()) return;
     if (!fotosHallazgoCtx.hallazgoId) return;
 
@@ -1463,11 +1531,8 @@ document.addEventListener('paste', async (e) => {
         }
     }
     if (files.length === 0) return;
-
     e.preventDefault();
-    for (const f of files) {
-        await subirArchivoFoto(f);
-    }
+    for (const f of files) await subirArchivoFoto(f);
 });
 
 async function eliminarFotoHallazgo(fotoId, storagePath) {
@@ -1483,6 +1548,32 @@ async function eliminarFotoHallazgo(fotoId, storagePath) {
     imagenesHallazgosCache = imagenesHallazgosCache.filter(i => i.id !== fotoId);
     renderFotosHallazgoModal();
     actualizarContadoresFotosEnTabla();
+    if (vistaActual === 'actos') renderGridActos();
+}
+
+// ---- Marcar foto como destacada ----
+async function marcarDestacada(hallazgoId, fotoId) {
+    if (!esAdminReal()) return;
+
+    // Quitar destacada a todas las fotos del hallazgo
+    await supabaseClient
+        .from('imagenes_hallazgos')
+        .update({ destacada: false })
+        .eq('hallazgo_id', hallazgoId);
+
+    // Marcar la seleccionada
+    await supabaseClient
+        .from('imagenes_hallazgos')
+        .update({ destacada: true })
+        .eq('id', fotoId);
+
+    // Actualizar cache local
+    imagenesHallazgosCache.forEach(i => {
+        if (i.hallazgo_id === hallazgoId) i.destacada = (i.id === fotoId);
+    });
+
+    renderFotosHallazgoModal();
+    if (vistaActual === 'actos') renderGridActos();
 }
 
 function suscribirRealtimeFotosHallazgos() {
@@ -1499,16 +1590,274 @@ function suscribirRealtimeFotosHallazgos() {
                         imagenesHallazgosCache.push(payload.new);
                     }
                     hallazgosConFotosConsultados.add(payload.new.hallazgo_id);
+                } else if (payload.eventType === 'UPDATE' && payload.new) {
+                    const idx = imagenesHallazgosCache.findIndex(i => i.id === payload.new.id);
+                    if (idx >= 0) imagenesHallazgosCache[idx] = payload.new;
+                    else imagenesHallazgosCache.push(payload.new);
                 } else if (payload.eventType === 'DELETE' && payload.old) {
                     imagenesHallazgosCache = imagenesHallazgosCache.filter(i => i.id !== payload.old.id);
                 }
                 actualizarContadoresFotosEnTabla();
-                if (document.getElementById('modal-fotos-hallazgo').classList.contains('flex')) {
+                if (!document.getElementById('modal-fotos-hallazgo').classList.contains('hidden')) {
                     renderFotosHallazgoModal();
                 }
+                if (vistaActual === 'actos') renderGridActos();
             })
         .subscribe();
 }
+
+// ==========================================
+// 16. ACTOS INSEGUROS
+// ==========================================
+let actosInsegurosCache = [];          // todos los actos (2025 + 2026)
+let actosDelMesCache = [];             // actos del mes seleccionado en 2026
+let kpiActosCargado = false;
+let editarActoCtx = { hallazgoId: null };
+
+const ANIO_ACTOS = 2026;
+const ANIO_ACTOS_ANTERIOR = 2025;
+
+async function cargarActosInseguros() {
+    await cargarKPIActos();
+    await cargarActosDelMes(mesActosSeleccionado);
+}
+
+// -------- KPI TABLE (siempre fija, no filtra) --------
+// Muestra solo los meses transcurridos del año calendario (Ene...mesActual)
+// Cuando el sistema cambia de mes, los nuevos aparecen automáticamente.
+function aplicarVisibilidadMesesKPI() {
+    const hoy = new Date();
+    const anioHoy = hoy.getFullYear();
+    const mesHoy  = hoy.getMonth() + 1; // 1-12
+
+    // Si estamos en el año de ANIO_ACTOS → hasta el mes actual
+    // Si estamos en un año posterior → los 12
+    // Si estamos antes → los 12 (nada que ocultar todavía)
+    let mesLimite = 12;
+    if (anioHoy === ANIO_ACTOS) mesLimite = mesHoy;
+    else if (anioHoy > ANIO_ACTOS) mesLimite = 12;
+
+    for (let i = 1; i <= 12; i++) {
+        const mostrar = i <= mesLimite;
+
+        // Ocultar el <th> del mes
+        const th = document.querySelector(`[data-kpi-mes="${i}"]`);
+        if (th) th.style.display = mostrar ? '' : 'none';
+
+        // Ocultar las celdas (data-kpi termina en -N: 2025-N, iden-N, cerr-N, pct-N)
+        document.querySelectorAll(`[data-kpi$="-${i}"]`).forEach(td => {
+            td.style.display = mostrar ? '' : 'none';
+        });
+    }
+}
+async function cargarKPIActos() {
+    const { data, error } = await supabaseClient
+        .from('hallazgos')
+        .select('"FECHA_ACONTECIMIENTO","ESTADO"')
+        .eq('"DESC_EVENTO"', 'Acto Subestandar')
+        .neq('"ESTADO"', 'Anulado')
+        .range(0, 9999);
+
+    if (error) { console.error('Error KPI actos:', error); return; }
+      aplicarVisibilidadMesesKPI(); 
+
+    const result = {
+        2025:       Array(12).fill(0),
+        iden2026:   Array(12).fill(0),
+        cerr2026:   Array(12).fill(0),
+        pct:        Array(12).fill(0)
+    };
+
+    (data || []).forEach(h => {
+        const { anio, mes } = parsearFechaHallazgo(h.FECHA_ACONTECIMIENTO);
+        if (!anio || !mes) return;
+        const idx = mes - 1;
+        if (anio === String(ANIO_ACTOS_ANTERIOR)) {
+            result[2025][idx]++;
+        } else if (anio === String(ANIO_ACTOS)) {
+            result.iden2026[idx]++;
+            if (h.ESTADO === 'Cerrado') result.cerr2026[idx]++;
+        }
+    });
+
+    // % cumplimiento
+    for (let i = 0; i < 12; i++) {
+        result.pct[i] = result.iden2026[i] > 0
+            ? (result.cerr2026[i] / result.iden2026[i]) * 100
+            : 0;
+    }
+
+    // Render
+    for (let i = 1; i <= 12; i++) {
+        setKpiText(`2025-${i}`, result[2025][i-1]);
+        setKpiText(`iden-${i}`, result.iden2026[i-1]);
+        setKpiText(`cerr-${i}`, result.cerr2026[i-1]);
+        setKpiText(`pct-${i}`, result.pct[i-1].toFixed(1) + '%');
+    }
+
+    const total2025 = result[2025].reduce((a,b) => a+b, 0);
+    const totalIden = result.iden2026.reduce((a,b) => a+b, 0);
+    const totalCerr = result.cerr2026.reduce((a,b) => a+b, 0);
+    const totalPct = totalIden > 0 ? (totalCerr / totalIden) * 100 : 0;
+
+    setKpiText('2025-total', total2025);
+    setKpiText('iden-total', totalIden);
+    setKpiText('cerr-total', totalCerr);
+    setKpiText('pct-total', totalPct.toFixed(1) + '%');
+}
+
+function setKpiText(key, valor) {
+    const el = document.querySelector(`[data-kpi="${key}"]`);
+    if (el) el.textContent = valor;
+}
+
+// -------- ACTOS DEL MES --------
+async function cargarActosDelMes(mes) {
+    const mesStr = String(mes).padStart(2, '0');
+
+    const { data, error } = await supabaseClient
+        .from('hallazgos')
+        .select('"COD_HALLAZGO","FECHA_ACONTECIMIENTO","DESC_SECCION","ACONTECIMIENTO","descripcion_acto"')
+        .eq('"DESC_EVENTO"', 'Acto Subestandar')
+        .neq('"ESTADO"', 'Anulado')
+        .like('"FECHA_ACONTECIMIENTO"', `%/${ANIO_ACTOS}%`)
+        .like('"FECHA_ACONTECIMIENTO"', `%/${mesStr}/%`)
+        .order('"FECHA_ACONTECIMIENTO"', { ascending: true });
+
+    if (error) { console.error('Error actos del mes:', error); return; }
+
+    actosDelMesCache = data || [];
+
+    // Cargar fotos de esos actos
+    const ids = actosDelMesCache.map(a => a.COD_HALLAZGO).filter(Boolean);
+    if (ids.length > 0) await cargarImagenesHallazgos(ids);
+
+    renderGridActos();
+}
+
+function renderGridActos() {
+    const cont = document.getElementById('grid-actos');
+    if (!cont) return;
+
+    if (actosDelMesCache.length === 0) {
+        cont.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400 text-sm">No hay actos inseguros registrados en ${nombreMes(mesActosSeleccionado)} ${ANIO_ACTOS}.</div>`;
+        return;
+    }
+
+    const admin = esAdminReal();
+    cont.innerHTML = '';
+
+    actosDelMesCache.forEach(acto => {
+        const codigo = acto.COD_HALLAZGO;
+        const foto = obtenerFotoDestacada(codigo);
+        const url = foto ? urlFotoHallazgo(foto.storage_path) : null;
+        const texto = acto.descripcion_acto || acto.ACONTECIMIENTO || '(Sin descripción)';
+
+        const card = document.createElement('div');
+        card.className = 'acto-card';
+        card.dataset.hallazgoId = codigo;
+
+        card.innerHTML = `
+            <div class="acto-card-foto" data-foto-url="${url ? escaparAttr(url) : ''}">
+                ${url
+                    ? `<img src="${escaparAttr(url)}" alt="${escaparAttr(codigo)}" loading="lazy" decoding="async">`
+                    : `<div class="w-full h-full flex items-center justify-center text-slate-300">
+                          <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                          </svg>
+                       </div>`
+                }
+                ${admin ? `
+                    <button type="button" class="acto-card-btn-edit" data-action="fotos" title="Gestionar fotos">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                        </svg>
+                    </button>
+                ` : ''}
+            </div>
+            <div class="p-4">
+                <p class="text-[10px] font-bold text-emerald-700 tracking-wider uppercase mb-1">${escaparHTML(codigo)}</p>
+                <p class="acto-card-hint-editable text-xs text-slate-700 leading-relaxed"
+                   data-action="${admin ? 'editar' : 'nada'}"
+                   data-hallazgo-id="${escaparAttr(codigo)}">${escaparHTML(texto)}</p>
+            </div>
+        `;
+
+        // Click handlers
+        card.querySelector('.acto-card-foto').addEventListener('click', (e) => {
+            if (e.target.closest('[data-action="fotos"]')) return;
+            if (url) abrirLightboxHallazgo(url);
+        });
+
+        const btnFotos = card.querySelector('[data-action="fotos"]');
+        if (btnFotos) {
+            btnFotos.addEventListener('click', (e) => {
+                e.stopPropagation();
+                abrirModalFotosHallazgo(codigo);
+            });
+        }
+
+        const pTexto = card.querySelector('[data-action="editar"]');
+        if (pTexto) {
+            pTexto.addEventListener('click', () => abrirModalEditarActo(codigo, texto));
+        }
+
+        cont.appendChild(card);
+    });
+}
+
+function obtenerFotoDestacada(hallazgoId) {
+    const fotos = imagenesHallazgosCache.filter(i => i.hallazgo_id === hallazgoId);
+    if (fotos.length === 0) return null;
+    const destacada = fotos.find(f => f.destacada === true);
+    return destacada || fotos[0];
+}
+
+// -------- MODAL EDITAR TEXTO --------
+function abrirModalEditarActo(hallazgoId, textoActual) {
+    if (!esAdminReal()) return;
+    editarActoCtx.hallazgoId = hallazgoId;
+    document.getElementById('editar-acto-texto').value = textoActual || '';
+    const m = document.getElementById('modal-editar-acto');
+    m.classList.remove('hidden');
+    m.classList.add('flex');
+    setTimeout(() => document.getElementById('editar-acto-texto').focus(), 50);
+}
+
+function cerrarModalEditarActo() {
+    const m = document.getElementById('modal-editar-acto');
+    m.classList.add('hidden');
+    m.classList.remove('flex');
+    editarActoCtx.hallazgoId = null;
+}
+
+document.getElementById('btn-guardar-acto').addEventListener('click', async () => {
+    if (!esAdminReal()) return;
+    const hallazgoId = editarActoCtx.hallazgoId;
+    if (!hallazgoId) return;
+
+    const nuevoTexto = document.getElementById('editar-acto-texto').value.trim();
+
+    const { error } = await supabaseClient
+        .from('hallazgos')
+        .update({ descripcion_acto: nuevoTexto || null })
+        .eq('COD_HALLAZGO', hallazgoId);
+
+    if (error) {
+        console.error(error);
+        alert('No se pudo guardar el texto.');
+        return;
+    }
+
+    // Actualizar cache local
+    const acto = actosDelMesCache.find(a => a.COD_HALLAZGO === hallazgoId);
+    if (acto) acto.descripcion_acto = nuevoTexto || null;
+
+    cerrarModalEditarActo();
+    renderGridActos();
+});
 
 // ==========================================
 // INICIO
