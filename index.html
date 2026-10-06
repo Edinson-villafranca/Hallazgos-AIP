@@ -61,9 +61,6 @@
         .btn-fotos-hallazgo.tiene-fotos { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
         .btn-fotos-hallazgo.tiene-fotos:hover { background: #10b981; border-color: #10b981; color: #fff; }
 
-        /* ============================================
-           TABS + BOTONES DE MES + TARJETAS DE ACTOS
-           ============================================ */
         .tab-btn {
             padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 600;
             border: 1px solid #e2e8f0; background: #fff; color: #64748b;
@@ -92,8 +89,8 @@
         .acto-card-foto:hover img { transform: scale(1.03); }
 
         .acto-card-btn-edit {
-            position: absolute; top: 10px; right: 10px;
-            width: 32px; height: 32px; border-radius: 50%;
+            position: absolute; top: 8px; right: 8px;
+            width: 28px; height: 28px; border-radius: 50%;
             background: rgba(15,23,42,.72); color: #fff; border: none;
             display: none; align-items: center; justify-content: center;
             cursor: pointer; backdrop-filter: blur(4px); transition: all .15s;
@@ -446,109 +443,146 @@
             <!-- ==================== VISTA 2: ACTOS INSEGUROS ==================== -->
             <div id="vista-actos" class="hidden space-y-4 sm:space-y-6">
 
-                <!-- Tabla KPI -->
-                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-                    <div class="overflow-x-auto">
-                        <table class="w-full border-collapse text-xs" style="min-width: 900px;">
-                            <thead>
-    <tr class="bg-emerald-600 text-white">
-        <th class="px-3 py-2.5 text-left text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500 whitespace-nowrap">Meses</th>
-        <th data-kpi-mes="1"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Ene</th>
-        <th data-kpi-mes="2"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Feb</th>
-        <th data-kpi-mes="3"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Mar</th>
-        <th data-kpi-mes="4"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Abr</th>
-        <th data-kpi-mes="5"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">May</th>
-        <th data-kpi-mes="6"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Jun</th>
-        <th data-kpi-mes="7"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Jul</th>
-        <th data-kpi-mes="8"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Ago</th>
-        <th data-kpi-mes="9"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Sep</th>
-        <th data-kpi-mes="10" class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Oct</th>
-        <th data-kpi-mes="11" class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Nov</th>
-        <th data-kpi-mes="12" class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Dic</th>
-        <th class="px-3 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase bg-emerald-700 whitespace-nowrap">Total Anual</th>
-    </tr>
-</thead>
-                            <tbody id="kpi-actos-tbody" class="divide-y divide-slate-200">
-                                <tr class="hover:bg-slate-50">
-                                    <td class="px-3 py-2.5 font-semibold text-slate-700 border-r border-slate-200 whitespace-nowrap">Hallazgos 2025</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-1">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-2">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-3">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-4">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-5">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-6">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-7">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-8">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-9">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-10">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-11">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-12">0</td>
-                                    <td class="px-3 py-2.5 text-center font-bold text-emerald-700 bg-emerald-50" data-kpi="2025-total">0</td>
-                                </tr>
-                                <tr class="hover:bg-slate-50">
-                                    <td class="px-3 py-2.5 font-semibold text-slate-700 border-r border-slate-200 whitespace-nowrap">Hallazgos identificados 2026</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-1">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-2">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-3">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-4">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-5">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-6">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-7">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-8">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-9">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-10">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-11">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-12">0</td>
-                                    <td class="px-3 py-2.5 text-center font-bold text-emerald-700 bg-emerald-50" data-kpi="iden-total">0</td>
-                                </tr>
-                                <tr class="hover:bg-slate-50">
-                                    <td class="px-3 py-2.5 font-semibold text-slate-700 border-r border-slate-200 whitespace-nowrap">Hallazgos cerrados 2026</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-1">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-2">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-3">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-4">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-5">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-6">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-7">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-8">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-9">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-10">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-11">0</td>
-                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-12">0</td>
-                                    <td class="px-3 py-2.5 text-center font-bold text-emerald-700 bg-emerald-50" data-kpi="cerr-total">0</td>
-                                </tr>
-                                <tr class="bg-emerald-50">
-                                    <td class="px-3 py-2.5 font-bold text-emerald-800 border-r border-emerald-200 whitespace-nowrap">% de cumplimiento mensual</td>
-                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-1">0%</td>
-                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-2">0%</td>
-                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-3">0%</td>
-                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-4">0%</td>
-                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-5">0%</td>
-                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-6">0%</td>
-                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-7">0%</td>
-                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-8">0%</td>
-                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-9">0%</td>
-                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-10">0%</td>
-                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-11">0%</td>
-                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-12">0%</td>
-                                    <td class="px-3 py-2.5 text-center font-bold text-white bg-emerald-600" data-kpi="pct-total">0%</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <!-- Sub-tabs -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-2 flex gap-2 shadow-sm">
+                    <button id="subt-tab-indicadores" class="tab-btn tab-btn-active flex-1 sm:flex-initial">Indicadores por mes</button>
+                    <button id="subt-tab-faltas" class="tab-btn flex-1 sm:flex-initial">Indicador de faltas</button>
+                </div>
+
+                <!-- ============ SUB-VISTA: INDICADORES POR MES ============ -->
+                <div id="subt-vista-indicadores" class="space-y-4 sm:space-y-6">
+
+                    <!-- Tabla KPI -->
+                    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                        <div class="overflow-x-auto">
+                            <table class="w-full border-collapse text-xs" style="min-width: 900px;">
+                                <thead>
+                                    <tr class="bg-emerald-600 text-white">
+                                        <th class="px-3 py-2.5 text-left text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500 whitespace-nowrap">Meses</th>
+                                        <th data-kpi-mes="1"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Ene</th>
+                                        <th data-kpi-mes="2"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Feb</th>
+                                        <th data-kpi-mes="3"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Mar</th>
+                                        <th data-kpi-mes="4"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Abr</th>
+                                        <th data-kpi-mes="5"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">May</th>
+                                        <th data-kpi-mes="6"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Jun</th>
+                                        <th data-kpi-mes="7"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Jul</th>
+                                        <th data-kpi-mes="8"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Ago</th>
+                                        <th data-kpi-mes="9"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Sep</th>
+                                        <th data-kpi-mes="10" class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Oct</th>
+                                        <th data-kpi-mes="11" class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Nov</th>
+                                        <th data-kpi-mes="12" class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Dic</th>
+                                        <th class="px-3 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase bg-emerald-700 whitespace-nowrap">Total Anual</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="kpi-actos-tbody" class="divide-y divide-slate-200">
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="px-3 py-2.5 font-semibold text-slate-700 border-r border-slate-200 whitespace-nowrap">Hallazgos 2025</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-1">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-2">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-3">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-4">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-5">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-6">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-7">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-8">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-9">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-10">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-11">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-12">0</td>
+                                        <td class="px-3 py-2.5 text-center font-bold text-emerald-700 bg-emerald-50" data-kpi="2025-total">0</td>
+                                    </tr>
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="px-3 py-2.5 font-semibold text-slate-700 border-r border-slate-200 whitespace-nowrap">Hallazgos identificados 2026</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-1">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-2">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-3">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-4">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-5">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-6">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-7">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-8">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-9">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-10">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-11">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-12">0</td>
+                                        <td class="px-3 py-2.5 text-center font-bold text-emerald-700 bg-emerald-50" data-kpi="iden-total">0</td>
+                                    </tr>
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="px-3 py-2.5 font-semibold text-slate-700 border-r border-slate-200 whitespace-nowrap">Hallazgos cerrados 2026</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-1">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-2">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-3">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-4">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-5">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-6">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-7">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-8">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-9">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-10">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-11">0</td>
+                                        <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-12">0</td>
+                                        <td class="px-3 py-2.5 text-center font-bold text-emerald-700 bg-emerald-50" data-kpi="cerr-total">0</td>
+                                    </tr>
+                                    <tr class="bg-emerald-50">
+                                        <td class="px-3 py-2.5 font-bold text-emerald-800 border-r border-emerald-200 whitespace-nowrap">% de cumplimiento mensual</td>
+                                        <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-1">0%</td>
+                                        <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-2">0%</td>
+                                        <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-3">0%</td>
+                                        <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-4">0%</td>
+                                        <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-5">0%</td>
+                                        <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-6">0%</td>
+                                        <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-7">0%</td>
+                                        <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-8">0%</td>
+                                        <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-9">0%</td>
+                                        <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-10">0%</td>
+                                        <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-11">0%</td>
+                                        <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-12">0%</td>
+                                        <td class="px-3 py-2.5 text-center font-bold text-white bg-emerald-600" data-kpi="pct-total">0%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Botones de mes -->
-                <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm">
-                    <div class="flex flex-wrap gap-2" id="meses-actos"></div>
-                </div>
+                    <!-- Botones de mes -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm">
+                        <div class="flex flex-wrap gap-2" id="meses-actos"></div>
+                    </div>
 
-                <!-- Grilla de tarjetas -->
-                <div id="grid-actos" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-                    <div class="col-span-full text-center py-12 text-slate-400 text-sm">Cargando actos…</div>
-                </div>
+                    <!-- Grilla de tarjetas -->
+                    <div id="grid-actos" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+                        <div class="col-span-full text-center py-12 text-slate-400 text-sm">Cargando actos…</div>
+                    </div>
 
-            </div>
+                </div><!-- /subt-vista-indicadores -->
+
+                <!-- ============ SUB-VISTA: INDICADOR DE FALTAS ============ -->
+                <div id="subt-vista-faltas" class="hidden">
+                    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                        <div class="px-5 py-4 border-b border-slate-100">
+                            <h2 class="text-sm sm:text-base font-bold text-slate-900 tracking-tight">Ranking de faltas más cometidas</h2>
+                            <p id="ranking-subtitulo" class="text-[11px] sm:text-xs text-slate-500 mt-0.5">—</p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm" style="min-width: 600px;">
+                                <thead>
+                                    <tr class="border-b border-slate-200 bg-slate-50/50">
+                                        <th class="text-left px-4 py-3 font-semibold text-[11px] text-slate-500 tracking-widest uppercase w-12">#</th>
+                                        <th class="text-left px-4 py-3 font-semibold text-[11px] text-slate-500 tracking-widest uppercase">Falta</th>
+                                        <th class="text-center px-4 py-3 font-semibold text-[11px] text-slate-500 tracking-widest uppercase w-24">Cantidad</th>
+                                        <th class="text-center px-4 py-3 font-semibold text-[11px] text-slate-500 tracking-widest uppercase w-20">%</th>
+                                        <th class="text-left px-4 py-3 font-semibold text-[11px] text-slate-500 tracking-widest uppercase w-1/3">Distribución</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ranking-faltas-body" class="divide-y divide-slate-100">
+                                    <tr><td colspan="5" class="text-center py-12 text-slate-400 text-sm">Cargando…</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div><!-- /subt-vista-faltas -->
+
+            </div><!-- /vista-actos -->
 
         </main>
     </div>
@@ -588,19 +622,34 @@
         </div>
     </div>
 
-    <!-- ==================== MODAL EDITAR TEXTO DE ACTO ==================== -->
+    <!-- ==================== MODAL EDITAR TEXTO + FALTAS ==================== -->
     <div id="modal-editar-acto" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[150] hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col">
             <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
                 <h3 class="text-base font-bold text-slate-900">Editar descripción del acto</h3>
                 <button onclick="cerrarModalEditarActo()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none p-1">×</button>
             </div>
-            <div class="px-5 py-4">
+            <div class="px-5 py-4 overflow-y-auto flex-1">
                 <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">Descripción</label>
                 <textarea id="editar-acto-texto" rows="4"
                     placeholder="Describe brevemente el acto subestándar..."
                     class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-vertical"></textarea>
                 <p class="text-[10px] text-slate-400 mt-2">Este texto aparece en la tarjeta del acto. No modifica el campo "Acontecimiento" original.</p>
+
+                <div class="mt-5 pt-5 border-t border-slate-200">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">Faltas asociadas</label>
+                    <div id="faltas-chips" class="flex flex-wrap gap-2 mb-3"></div>
+                    <div class="relative">
+                        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <input type="text" id="falta-buscar" placeholder="Buscar o crear falta..."
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                            autocomplete="off">
+                        <div id="falta-sugerencias" class="hidden absolute top-full left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-2xl mt-1 max-h-64 overflow-y-auto z-20"></div>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-2">Escribe para buscar. Si no existe, aparecerá la opción de crearla.</p>
+                </div>
             </div>
             <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
                 <button onclick="cerrarModalEditarActo()" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition">Cancelar</button>
@@ -617,6 +666,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-    <script src="app.js?v=4"></script>
+    <script src="app.js?v=6"></script>
 </body>
 </html>
