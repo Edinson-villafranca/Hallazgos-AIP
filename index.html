@@ -21,103 +21,99 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        /* ============================================
-           FONDO ANIMADO — Login
-           ============================================ */
-        .fondo-animado {
-            position: absolute; inset: 0; overflow: hidden; z-index: 0;
-            background: linear-gradient(180deg, #ffb27a 0%, #ff9d6b 25%, #f4a259 45%, #d98a4a 60%, #8a7a3f 80%, #4a5a2a 100%);
-        }
-        .sol {
-            position: absolute; top: 42%; left: 50%;
-            transform: translate(-50%, -50%);
+        .fondo-animado { position: absolute; inset: 0; overflow: hidden; z-index: 0;
+            background: linear-gradient(180deg, #ffb27a 0%, #ff9d6b 25%, #f4a259 45%, #d98a4a 60%, #8a7a3f 80%, #4a5a2a 100%); }
+        .sol { position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%);
             width: 42vmin; height: 42vmin; border-radius: 50%;
             background: radial-gradient(circle, rgba(255,235,190,0.95) 0%, rgba(255,200,130,0.55) 30%, rgba(255,170,100,0.15) 60%, transparent 75%);
-            filter: blur(8px);
-            animation: pulsoSol 8s ease-in-out infinite;
-        }
-        @keyframes pulsoSol {
-            0%, 100% { opacity: 0.85; transform: translate(-50%, -50%) scale(1); }
-            50%      { opacity: 1;    transform: translate(-50%, -50%) scale(1.05); }
-        }
+            filter: blur(8px); animation: pulsoSol 8s ease-in-out infinite; }
+        @keyframes pulsoSol { 0%, 100% { opacity: 0.85; transform: translate(-50%, -50%) scale(1); } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); } }
         .nubes { position: absolute; inset: 0; pointer-events: none; }
-        .nube {
-            position: absolute;
+        .nube { position: absolute;
             background: radial-gradient(ellipse at center, rgba(255,220,190,0.65) 0%, rgba(255,200,170,0.25) 40%, transparent 70%);
-            border-radius: 50%; filter: blur(30px);
-        }
+            border-radius: 50%; filter: blur(30px); }
         .n1 { width: 60vmin; height: 18vmin; top: 15%; left: -20%; animation: deriva 90s linear infinite; }
         .n2 { width: 45vmin; height: 14vmin; top: 28%; left: -30%; animation: deriva 120s linear infinite 15s; opacity: .7; }
-        .n3 { width: 70vmin; height: 20vmin; top: 8%;  left: -40%; animation: deriva 140s linear infinite 30s; opacity: .55; }
+        .n3 { width: 70vmin; height: 20vmin; top: 8%; left: -40%; animation: deriva 140s linear infinite 30s; opacity: .55; }
         @keyframes deriva { from { transform: translateX(0); } to { transform: translateX(160vw); } }
         .colina { position: absolute; bottom: 0; left: 0; width: 100%; height: 45%; opacity: 0.9; pointer-events: none; }
         .canas { position: absolute; bottom: 0; left: 0; right: 0; height: 75%; pointer-events: none; }
         .cana { position: absolute; bottom: 0; transform-origin: bottom center; will-change: transform; }
-        .cana svg {
-            display: block; height: 100%; width: auto; overflow: visible;
-            transform-origin: bottom center;
-            animation: viento var(--dur, 4s) ease-in-out infinite alternate;
-            animation-delay: var(--delay, 0s);
-        }
-        @keyframes viento {
-            0%   { transform: rotate(-1.8deg) translateX(-2px); }
-            100% { transform: rotate(2.2deg)  translateX(3px);  }
-        }
-        .hoja {
-            animation: hojaOndula var(--durHoja, 3s) ease-in-out infinite alternate;
-            animation-delay: var(--delayHoja, 0s);
-        }
+        .cana svg { display: block; height: 100%; width: auto; overflow: visible; transform-origin: bottom center;
+            animation: viento var(--dur, 4s) ease-in-out infinite alternate; animation-delay: var(--delay, 0s); }
+        @keyframes viento { 0% { transform: rotate(-1.8deg) translateX(-2px); } 100% { transform: rotate(2.2deg) translateX(3px); } }
+        .hoja { animation: hojaOndula var(--durHoja, 3s) ease-in-out infinite alternate; animation-delay: var(--delayHoja, 0s); }
         @keyframes hojaOndula { 0% { transform: rotate(-3deg); } 100% { transform: rotate(4deg); } }
-        .atmosfera {
-            position: absolute; inset: 0; pointer-events: none;
-            background:
-                radial-gradient(ellipse at 50% 45%, rgba(255,220,170,0.25) 0%, transparent 55%),
+        .atmosfera { position: absolute; inset: 0; pointer-events: none;
+            background: radial-gradient(ellipse at 50% 45%, rgba(255,220,170,0.25) 0%, transparent 55%),
                 radial-gradient(ellipse at center, transparent 55%, rgba(60,40,20,0.35) 100%);
-            mix-blend-mode: soft-light;
+            mix-blend-mode: soft-light; }
+        @media (max-width: 768px) { .canas { height: 55%; } .sol { width: 60vmin; height: 60vmin; } }
+        @media (prefers-reduced-motion: reduce) { .cana svg, .hoja, .nube, .sol { animation: none !important; } }
+
+        .btn-fotos-hallazgo {
+            display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px;
+            border: 1px solid #e2e8f0; border-radius: 999px; background: #fff; color: #64748b;
+            font-size: 11px; font-weight: 600; cursor: pointer; transition: all .15s ease;
+            min-width: 52px; justify-content: center; font-family: inherit;
         }
-        @media (max-width: 768px) {
-            .canas { height: 55%; }
-            .sol   { width: 60vmin; height: 60vmin; }
-        }
-        @media (prefers-reduced-motion: reduce) {
-            .cana svg, .hoja, .nube, .sol { animation: none !important; }
-        }
+        .btn-fotos-hallazgo:hover { background: #ecfdf5; border-color: #10b981; color: #059669; }
+        .btn-fotos-hallazgo.tiene-fotos { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+        .btn-fotos-hallazgo.tiene-fotos:hover { background: #10b981; border-color: #10b981; color: #fff; }
 
         /* ============================================
-           BOTÓN DE FOTOS EN LA TABLA
+           TABS + BOTONES DE MES + TARJETAS DE ACTOS
            ============================================ */
-        .btn-fotos-hallazgo {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 5px 10px;
-            border: 1px solid #e2e8f0;
-            border-radius: 999px;
-            background: #fff;
-            color: #64748b;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all .15s ease;
-            min-width: 52px;
-            justify-content: center;
-            font-family: inherit;
+        .tab-btn {
+            padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 600;
+            border: 1px solid #e2e8f0; background: #fff; color: #64748b;
+            cursor: pointer; transition: all .15s ease; font-family: inherit; white-space: nowrap;
         }
-        .btn-fotos-hallazgo:hover {
-            background: #ecfdf5;
-            border-color: #10b981;
-            color: #059669;
+        .tab-btn:hover { background: #f1f5f9; color: #334155; }
+        .tab-btn.tab-btn-active { background: #059669; color: #fff; border-color: #059669; box-shadow: 0 4px 12px rgba(5,150,105,.25); }
+
+        .mes-btn {
+            padding: 8px 14px; border-radius: 999px; font-size: 12px; font-weight: 600;
+            border: 1px solid #e2e8f0; background: #fff; color: #64748b;
+            cursor: pointer; transition: all .15s ease; font-family: inherit; min-width: 52px;
         }
-        .btn-fotos-hallazgo.tiene-fotos {
-            background: #ecfdf5;
-            border-color: #a7f3d0;
-            color: #065f46;
+        .mes-btn:hover { border-color: #34d399; color: #059669; background: #ecfdf5; }
+        .mes-btn.mes-btn-active { background: #059669; color: #fff; border-color: #059669; box-shadow: 0 4px 12px rgba(5,150,105,.25); }
+
+        .acto-card {
+            background: #fff; border: 2px solid #059669; border-radius: 16px;
+            overflow: hidden; box-shadow: 0 2px 8px rgba(15,23,42,.04);
+            transition: all .2s ease;
         }
-        .btn-fotos-hallazgo.tiene-fotos:hover {
-            background: #10b981;
-            border-color: #10b981;
-            color: #fff;
+        .acto-card:hover { box-shadow: 0 8px 24px rgba(5,150,105,.15); transform: translateY(-2px); }
+
+        .acto-card-foto { aspect-ratio: 1 / 1; background: #f1f5f9; position: relative; overflow: hidden; }
+        .acto-card-foto img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; display: block; transition: transform .3s ease; }
+        .acto-card-foto:hover img { transform: scale(1.03); }
+
+        .acto-card-btn-edit {
+            position: absolute; top: 10px; right: 10px;
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(15,23,42,.72); color: #fff; border: none;
+            display: none; align-items: center; justify-content: center;
+            cursor: pointer; backdrop-filter: blur(4px); transition: all .15s;
         }
+        .acto-card:hover .acto-card-btn-edit { display: inline-flex; }
+        .acto-card-btn-edit:hover { background: #059669; }
+
+        .acto-card-hint-editable { cursor: text; transition: background .15s; border-radius: 4px; padding: 2px 4px; margin: -2px -4px; }
+        .acto-card-hint-editable:hover { background: #ecfdf5; }
+
+        .foto-destacada-star {
+            position: absolute; top: 8px; left: 8px;
+            width: 30px; height: 30px; border-radius: 50%;
+            background: rgba(15,23,42,.72); color: #fbbf24; border: none;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; backdrop-filter: blur(4px); transition: all .15s;
+            font-size: 14px; line-height: 1;
+        }
+        .foto-destacada-star:hover { background: rgba(251,191,36,.95); color: #fff; }
+        .foto-destacada-star.activa { background: #fbbf24; color: #fff; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -145,7 +141,6 @@
             <div class="atmosfera"></div>
         </div>
 
-        <!-- Menú hamburguesa admin -->
         <div class="absolute top-4 left-4 sm:top-6 sm:left-6 z-10">
             <button id="btn-hamburguesa-login" class="text-slate-700 hover:text-slate-900 bg-white/70 hover:bg-white backdrop-blur p-2.5 sm:p-3 rounded-xl shadow-lg transition">
                 <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,7 +162,6 @@
             </div>
         </div>
 
-        <!-- Formulario login normal -->
         <div id="form-login-normal" class="relative z-10 bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-6 sm:p-10 w-full max-w-md border border-white/40">
             <div class="text-center mb-8 sm:mb-10">
                 <div class="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-2xl mb-5 shadow-lg border border-slate-100 p-2">
@@ -198,7 +192,6 @@
             </div>
         </div>
 
-        <!-- Formulario login admin -->
         <div id="form-login-admin" class="hidden relative z-10 bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-6 sm:p-10 w-full max-w-md border border-white/40">
             <div class="text-center mb-8 sm:mb-10">
                 <div class="inline-flex items-center justify-center w-14 h-14 bg-slate-900 rounded-2xl mb-5 shadow-lg">
@@ -237,17 +230,18 @@
                         <h1 class="text-sm sm:text-lg font-bold text-slate-900 tracking-tight leading-tight truncate">Hallazgos AIP</h1>
                         <p class="text-[10px] sm:text-xs text-slate-500 leading-tight truncate hidden xs:block">Actos y Condiciones Subestándar</p>
                     </div>
+                    <div id="tabs-nav" class="hidden ml-2 sm:ml-6 flex items-center gap-2">
+                        <button id="tab-hallazgos" class="tab-btn tab-btn-active">Hallazgos</button>
+                        <button id="tab-actos" class="tab-btn">Actos Inseguros</button>
+                    </div>
                 </div>
                 <div class="flex items-center gap-2 sm:gap-4 relative">
-
-                    <!-- BOTÓN DE EXCEL (ADMIN) -->
                     <div id="admin-excel-panel" class="hidden relative">
                         <button id="btn-toggle-excel" class="bg-emerald-600 hover:bg-emerald-700 text-white p-2 sm:p-2.5 rounded-xl shadow-md transition-all duration-200 flex items-center justify-center hover:scale-105">
                             <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                             </svg>
                         </button>
-
                         <div id="excel-panel-content" class="hidden absolute top-12 sm:top-14 right-0 bg-white rounded-2xl shadow-2xl border border-slate-200 p-4 w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] z-50">
                             <div class="flex items-center justify-between mb-3">
                                 <div class="flex items-center gap-2">
@@ -272,7 +266,6 @@
                             <p class="text-[10px] text-slate-400 mt-2 text-center">Sube el Excel con la misma estructura de la tabla</p>
                         </div>
                     </div>
-
                     <div class="text-right hidden md:block">
                         <p class="text-[10px] text-slate-400 uppercase tracking-wider font-medium">Sesión activa</p>
                         <p id="usuario-actual" class="text-sm font-semibold text-slate-700 truncate max-w-[180px]">—</p>
@@ -287,174 +280,281 @@
             </div>
         </header>
 
-        <main class="max-w-[1600px] mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-6">
+        <main class="max-w-[1600px] mx-auto px-3 sm:px-6 py-4 sm:py-8">
 
-            <!-- Filtros -->
-            <div class="relative bg-white rounded-2xl border border-slate-200 overflow-hidden">
-                <div class="h-1 bg-gradient-to-r from-emerald-700 via-emerald-600 to-red-600"></div>
-                <div class="p-3 sm:p-5">
-                    <div class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-5 items-start">
-                        <div class="flex flex-col gap-3 md:contents min-w-0">
-                            <div class="md:order-2 min-w-0">
-                                <label class="text-[10px] sm:text-xs font-extrabold text-slate-900 mb-1.5 sm:mb-2 block tracking-widest uppercase">Evento</label>
-                                <div id="filtro-evento-botones" class="flex flex-col gap-1.5"></div>
+            <!-- ==================== VISTA 1: HALLAZGOS ==================== -->
+            <div id="vista-hallazgos" class="space-y-4 sm:space-y-6">
+
+                <!-- Filtros -->
+                <div class="relative bg-white rounded-2xl border border-slate-200 overflow-hidden">
+                    <div class="h-1 bg-gradient-to-r from-emerald-700 via-emerald-600 to-red-600"></div>
+                    <div class="p-3 sm:p-5">
+                        <div class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-5 items-start">
+                            <div class="flex flex-col gap-3 md:contents min-w-0">
+                                <div class="md:order-2 min-w-0">
+                                    <label class="text-[10px] sm:text-xs font-extrabold text-slate-900 mb-1.5 sm:mb-2 block tracking-widest uppercase">Evento</label>
+                                    <div id="filtro-evento-botones" class="flex flex-col gap-1.5"></div>
+                                </div>
+                                <div class="md:order-3">
+                                    <label class="text-[10px] sm:text-xs font-extrabold text-slate-900 mb-1.5 sm:mb-2 block tracking-widest uppercase">Estado</label>
+                                    <div id="filtro-estado-botones" class="flex flex-col gap-1.5"></div>
+                                </div>
                             </div>
-                            <div class="md:order-3">
-                                <label class="text-[10px] sm:text-xs font-extrabold text-slate-900 mb-1.5 sm:mb-2 block tracking-widest uppercase">Estado</label>
-                                <div id="filtro-estado-botones" class="flex flex-col gap-1.5"></div>
-                            </div>
-                        </div>
-                        <div class="flex flex-col gap-3 md:contents min-w-0">
-                            <div class="md:order-1">
-                                <label class="text-[10px] sm:text-xs font-extrabold text-slate-900 mb-1.5 sm:mb-2 block tracking-widest uppercase">Año</label>
-                                <select id="filtro-anio" class="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-2 sm:px-3 text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition cursor-pointer hover:border-slate-300">
-                                    <option value="">Todos</option>
-                                </select>
-                            </div>
-                            <div class="md:order-4">
-                                <label class="text-[10px] sm:text-xs font-extrabold text-slate-900 mb-1.5 sm:mb-2 block tracking-widest uppercase">Gerencia</label>
-                                <select id="filtro-gerencia" class="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-2 sm:px-3 text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition cursor-pointer hover:border-slate-300">
-                                    <option value="">Todas</option>
-                                </select>
-                            </div>
-                            <div class="md:order-5">
-                                <label class="text-[10px] sm:text-xs font-extrabold text-slate-900 mb-1.5 sm:mb-2 block tracking-widest uppercase">Área</label>
-                                <select id="filtro-area" class="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-2 sm:px-3 text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition cursor-pointer hover:border-slate-300">
-                                    <option value="">Todas</option>
-                                </select>
+                            <div class="flex flex-col gap-3 md:contents min-w-0">
+                                <div class="md:order-1">
+                                    <label class="text-[10px] sm:text-xs font-extrabold text-slate-900 mb-1.5 sm:mb-2 block tracking-widest uppercase">Año</label>
+                                    <select id="filtro-anio" class="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-2 sm:px-3 text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition cursor-pointer hover:border-slate-300">
+                                        <option value="">Todos</option>
+                                    </select>
+                                </div>
+                                <div class="md:order-4">
+                                    <label class="text-[10px] sm:text-xs font-extrabold text-slate-900 mb-1.5 sm:mb-2 block tracking-widest uppercase">Gerencia</label>
+                                    <select id="filtro-gerencia" class="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-2 sm:px-3 text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition cursor-pointer hover:border-slate-300">
+                                        <option value="">Todas</option>
+                                    </select>
+                                </div>
+                                <div class="md:order-5">
+                                    <label class="text-[10px] sm:text-xs font-extrabold text-slate-900 mb-1.5 sm:mb-2 block tracking-widest uppercase">Área</label>
+                                    <select id="filtro-area" class="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-2 sm:px-3 text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition cursor-pointer hover:border-slate-300">
+                                        <option value="">Todas</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- KPIs -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
-                <div class="kpi-card bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-1 h-full bg-slate-800"></div>
-                    <div class="flex justify-between items-start gap-2">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-[9px] sm:text-[11px] font-extrabold text-slate-900 tracking-widest uppercase mb-2 sm:mb-4">Total Hallazgos</p>
-                            <p class="text-2xl sm:text-4xl md:text-5xl font-bold text-slate-900 tracking-tight leading-none" id="stat-total">0</p>
-                            <p class="text-[10px] sm:text-xs text-slate-400 mt-2 sm:mt-3">Registro acumulado</p>
+                <!-- KPIs -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+                    <div class="kpi-card bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-slate-800"></div>
+                        <div class="flex justify-between items-start gap-2">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-[9px] sm:text-[11px] font-extrabold text-slate-900 tracking-widest uppercase mb-2 sm:mb-4">Total Hallazgos</p>
+                                <p class="text-2xl sm:text-4xl md:text-5xl font-bold text-slate-900 tracking-tight leading-none" id="stat-total">0</p>
+                                <p class="text-[10px] sm:text-xs text-slate-400 mt-2 sm:mt-3">Registro acumulado</p>
+                            </div>
+                            <img src="assets/total.png" alt="" class="h-7 w-7 sm:h-10 sm:w-10 object-contain opacity-90 mt-1 hidden xs:block">
                         </div>
-                        <img src="assets/total.png" alt="" class="h-7 w-7 sm:h-10 sm:w-10 object-contain opacity-90 mt-1 hidden xs:block">
+                    </div>
+                    <div class="kpi-card bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
+                        <div class="flex justify-between items-start gap-2">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-[9px] sm:text-[11px] font-extrabold text-emerald-700 tracking-widest uppercase mb-2 sm:mb-4">Cerrados</p>
+                                <p class="text-2xl sm:text-4xl md:text-5xl font-bold text-emerald-600 tracking-tight leading-none" id="stat-cerrados">0</p>
+                                <p class="text-[10px] sm:text-xs text-emerald-600/70 mt-2 sm:mt-3 font-medium">Hallazgos resueltos</p>
+                            </div>
+                            <img src="assets/cerrados.png" alt="" class="h-7 w-7 sm:h-10 sm:w-10 object-contain opacity-90 mt-1 hidden xs:block">
+                        </div>
+                    </div>
+                    <div class="kpi-card bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
+                        <div class="flex justify-between items-start gap-2">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-[9px] sm:text-[11px] font-extrabold text-red-700 tracking-widest uppercase mb-2 sm:mb-4">Pendientes</p>
+                                <p class="text-2xl sm:text-4xl md:text-5xl font-bold text-red-600 tracking-tight leading-none" id="stat-pendientes">0</p>
+                                <p class="text-[10px] sm:text-xs text-red-600/70 mt-2 sm:mt-3 font-medium">Requieren atención</p>
+                            </div>
+                            <img src="assets/pendientes.png" alt="" class="h-7 w-7 sm:h-10 sm:w-10 object-contain opacity-90 mt-1 hidden xs:block">
+                        </div>
+                    </div>
+                    <div class="kpi-card bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+                        <div class="flex justify-between items-start gap-2">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-[9px] sm:text-[11px] font-extrabold text-blue-700 tracking-widest uppercase mb-2 sm:mb-4">% Cumplimiento</p>
+                                <p id="stat-porcentaje" class="text-2xl sm:text-4xl md:text-5xl font-bold text-slate-900 tracking-tight leading-none">0%</p>
+                                <p class="text-[10px] sm:text-xs text-slate-400 mt-2 sm:mt-3">Objetivo: <span class="font-semibold text-slate-600">100%</span></p>
+                            </div>
+                            <div class="bg-blue-50 p-1.5 sm:p-2 rounded-xl mt-1 hidden xs:block">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="kpi-card bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
-                    <div class="flex justify-between items-start gap-2">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-[9px] sm:text-[11px] font-extrabold text-emerald-700 tracking-widest uppercase mb-2 sm:mb-4">Cerrados</p>
-                            <p class="text-2xl sm:text-4xl md:text-5xl font-bold text-emerald-600 tracking-tight leading-none" id="stat-cerrados">0</p>
-                            <p class="text-[10px] sm:text-xs text-emerald-600/70 mt-2 sm:mt-3 font-medium">Hallazgos resueltos</p>
+                <!-- Gráfico -->
+                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+                    <div class="px-3 sm:px-6 py-3 sm:py-5 border-b border-slate-100 flex justify-between items-start gap-3 flex-wrap">
+                        <div class="min-w-0">
+                            <h2 id="titulo-grafico" class="text-sm sm:text-base font-bold text-slate-900 tracking-tight">Hallazgos</h2>
+                            <p id="subtitulo-grafico" class="text-[11px] sm:text-xs text-slate-500 mt-0.5">Selecciona filtros para ver el detalle</p>
                         </div>
-                        <img src="assets/cerrados.png" alt="" class="h-7 w-7 sm:h-10 sm:w-10 object-contain opacity-90 mt-1 hidden xs:block">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <div id="filtro-evento-grafico" class="flex gap-1.5"></div>
+                            <button id="btn-volver-grafico" class="hidden text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+                                ← Volver
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-2 sm:p-6 h-64 sm:h-80 md:h-96">
+                        <canvas id="grafico-area"></canvas>
                     </div>
                 </div>
 
-                <div class="kpi-card bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
-                    <div class="flex justify-between items-start gap-2">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-[9px] sm:text-[11px] font-extrabold text-red-700 tracking-widest uppercase mb-2 sm:mb-4">Pendientes</p>
-                            <p class="text-2xl sm:text-4xl md:text-5xl font-bold text-red-600 tracking-tight leading-none" id="stat-pendientes">0</p>
-                            <p class="text-[10px] sm:text-xs text-red-600/70 mt-2 sm:mt-3 font-medium">Requieren atención</p>
+                <!-- Tabla -->
+                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+                    <div class="px-3 sm:px-6 py-4 sm:py-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-3 sm:gap-4">
+                        <div>
+                            <h2 class="text-sm sm:text-base font-bold text-slate-900 tracking-tight">Hallazgos Detallados</h2>
+                            <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5"><span id="contador-tabla" class="font-semibold text-slate-700">0</span> hallazgos encontrados</p>
                         </div>
-                        <img src="assets/pendientes.png" alt="" class="h-7 w-7 sm:h-10 sm:w-10 object-contain opacity-90 mt-1 hidden xs:block">
-                    </div>
-                </div>
-
-                <div class="kpi-card bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
-                    <div class="flex justify-between items-start gap-2">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-[9px] sm:text-[11px] font-extrabold text-blue-700 tracking-widest uppercase mb-2 sm:mb-4">% Cumplimiento</p>
-                            <p id="stat-porcentaje" class="text-2xl sm:text-4xl md:text-5xl font-bold text-slate-900 tracking-tight leading-none">0%</p>
-                            <p class="text-[10px] sm:text-xs text-slate-400 mt-2 sm:mt-3">Objetivo: <span class="font-semibold text-slate-600">100%</span></p>
-                        </div>
-                        <div class="bg-blue-50 p-1.5 sm:p-2 rounded-xl mt-1 hidden xs:block">
-                            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        <div class="relative w-full sm:w-auto">
+                            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
+                            <input type="text" id="buscador" placeholder="Buscar en acontecimiento..."
+                                class="bg-slate-50 border border-slate-200 rounded-lg pl-10 pr-3 py-2 text-sm w-full sm:w-72 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
                         </div>
                     </div>
+
+                    <div class="overflow-x-auto hidden md:block">
+                        <table class="w-full text-sm" style="min-width: 1300px;">
+                            <thead>
+                                <tr class="border-b border-slate-200 bg-slate-50/50">
+                                    <th class="text-left px-6 py-3 font-semibold text-[11px] text-slate-500 tracking-widest uppercase whitespace-nowrap">Código</th>
+                                    <th class="text-left px-6 py-3 font-semibold text-[11px] text-slate-500 tracking-widest uppercase whitespace-nowrap">Año</th>
+                                    <th class="text-left px-6 py-3 font-semibold text-[11px] text-slate-500 tracking-widest uppercase whitespace-nowrap">Mes</th>
+                                    <th class="text-left px-6 py-3 font-semibold text-[11px] text-slate-500 tracking-widest uppercase whitespace-nowrap">Área</th>
+                                    <th class="text-left px-6 py-3 font-semibold text-[11px] text-slate-500 tracking-widest uppercase whitespace-nowrap">Estado</th>
+                                    <th class="text-center px-6 py-3 font-semibold text-[11px] text-slate-500 tracking-widest uppercase whitespace-nowrap">Fotos</th>
+                                    <th class="text-left px-6 py-3 font-semibold text-[11px] text-slate-500 tracking-widest uppercase">Acontecimiento</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-body" class="divide-y divide-slate-100">
+                                <tr><td colspan="7" class="text-center py-12 text-slate-400 text-sm">Cargando hallazgos...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="tabla-cards" class="md:hidden divide-y divide-slate-100">
+                        <div class="text-center py-12 text-slate-400 text-sm">Cargando hallazgos...</div>
+                    </div>
+
+                    <div class="px-3 sm:px-6 py-3 sm:py-4 border-t border-slate-100 flex justify-between items-center bg-slate-50/30">
+                        <button id="btn-prev" class="text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 hover:border-slate-300 rounded-lg px-2.5 sm:px-3 py-1.5 transition disabled:opacity-40 disabled:cursor-not-allowed bg-white">← Anterior</button>
+                        <span class="text-[11px] sm:text-xs text-slate-500 font-medium">Página <span id="pagina-actual" class="text-slate-800 font-semibold">1</span> de <span id="total-paginas" class="text-slate-800 font-semibold">1</span></span>
+                        <button id="btn-next" class="text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 hover:border-slate-300 rounded-lg px-2.5 sm:px-3 py-1.5 transition disabled:opacity-40 disabled:cursor-not-allowed bg-white">Siguiente →</button>
+                    </div>
                 </div>
+
             </div>
 
-            <!-- Gráfico -->
-            <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-                <div class="px-3 sm:px-6 py-3 sm:py-5 border-b border-slate-100 flex justify-between items-start gap-3 flex-wrap">
-                    <div class="min-w-0">
-                        <h2 id="titulo-grafico" class="text-sm sm:text-base font-bold text-slate-900 tracking-tight">Hallazgos</h2>
-                        <p id="subtitulo-grafico" class="text-[11px] sm:text-xs text-slate-500 mt-0.5">Selecciona filtros para ver el detalle</p>
-                    </div>
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <div id="filtro-evento-grafico" class="flex gap-1.5"></div>
-                        <button id="btn-volver-grafico" class="hidden text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg transition flex items-center gap-1">
-                            ← Volver
-                        </button>
-                    </div>
-                </div>
-                <div class="p-2 sm:p-6 h-64 sm:h-80 md:h-96">
-                    <canvas id="grafico-area"></canvas>
-                </div>
-            </div>
+            <!-- ==================== VISTA 2: ACTOS INSEGUROS ==================== -->
+            <div id="vista-actos" class="hidden space-y-4 sm:space-y-6">
 
-            <!-- Tabla -->
-            <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-                <div class="px-3 sm:px-6 py-4 sm:py-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-3 sm:gap-4">
-                    <div>
-                        <h2 class="text-sm sm:text-base font-bold text-slate-900 tracking-tight">Hallazgos Detallados</h2>
-                        <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5"><span id="contador-tabla" class="font-semibold text-slate-700">0</span> hallazgos encontrados</p>
+                <!-- Tabla KPI -->
+                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full border-collapse text-xs" style="min-width: 900px;">
+                            <thead>
+    <tr class="bg-emerald-600 text-white">
+        <th class="px-3 py-2.5 text-left text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500 whitespace-nowrap">Meses</th>
+        <th data-kpi-mes="1"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Ene</th>
+        <th data-kpi-mes="2"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Feb</th>
+        <th data-kpi-mes="3"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Mar</th>
+        <th data-kpi-mes="4"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Abr</th>
+        <th data-kpi-mes="5"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">May</th>
+        <th data-kpi-mes="6"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Jun</th>
+        <th data-kpi-mes="7"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Jul</th>
+        <th data-kpi-mes="8"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Ago</th>
+        <th data-kpi-mes="9"  class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Sep</th>
+        <th data-kpi-mes="10" class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Oct</th>
+        <th data-kpi-mes="11" class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Nov</th>
+        <th data-kpi-mes="12" class="px-2 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase border-r border-emerald-500">Dic</th>
+        <th class="px-3 py-2.5 text-center text-[11px] font-bold tracking-wider uppercase bg-emerald-700 whitespace-nowrap">Total Anual</th>
+    </tr>
+</thead>
+                            <tbody id="kpi-actos-tbody" class="divide-y divide-slate-200">
+                                <tr class="hover:bg-slate-50">
+                                    <td class="px-3 py-2.5 font-semibold text-slate-700 border-r border-slate-200 whitespace-nowrap">Hallazgos 2025</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-1">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-2">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-3">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-4">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-5">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-6">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-7">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-8">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-9">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-10">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-11">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="2025-12">0</td>
+                                    <td class="px-3 py-2.5 text-center font-bold text-emerald-700 bg-emerald-50" data-kpi="2025-total">0</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="px-3 py-2.5 font-semibold text-slate-700 border-r border-slate-200 whitespace-nowrap">Hallazgos identificados 2026</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-1">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-2">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-3">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-4">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-5">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-6">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-7">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-8">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-9">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-10">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-11">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="iden-12">0</td>
+                                    <td class="px-3 py-2.5 text-center font-bold text-emerald-700 bg-emerald-50" data-kpi="iden-total">0</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="px-3 py-2.5 font-semibold text-slate-700 border-r border-slate-200 whitespace-nowrap">Hallazgos cerrados 2026</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-1">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-2">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-3">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-4">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-5">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-6">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-7">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-8">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-9">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-10">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-11">0</td>
+                                    <td class="px-2 py-2.5 text-center text-slate-700 border-r border-slate-100" data-kpi="cerr-12">0</td>
+                                    <td class="px-3 py-2.5 text-center font-bold text-emerald-700 bg-emerald-50" data-kpi="cerr-total">0</td>
+                                </tr>
+                                <tr class="bg-emerald-50">
+                                    <td class="px-3 py-2.5 font-bold text-emerald-800 border-r border-emerald-200 whitespace-nowrap">% de cumplimiento mensual</td>
+                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-1">0%</td>
+                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-2">0%</td>
+                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-3">0%</td>
+                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-4">0%</td>
+                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-5">0%</td>
+                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-6">0%</td>
+                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-7">0%</td>
+                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-8">0%</td>
+                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-9">0%</td>
+                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-10">0%</td>
+                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-11">0%</td>
+                                    <td class="px-2 py-2.5 text-center font-bold text-emerald-800 border-r border-emerald-100" data-kpi="pct-12">0%</td>
+                                    <td class="px-3 py-2.5 text-center font-bold text-white bg-emerald-600" data-kpi="pct-total">0%</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="relative w-full sm:w-auto">
-                        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                        <input type="text" id="buscador" placeholder="Buscar en acontecimiento..."
-                            class="bg-slate-50 border border-slate-200 rounded-lg pl-10 pr-3 py-2 text-sm w-full sm:w-72 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
-                    </div>
                 </div>
 
-                <!-- VISTA ESCRITORIO: tabla normal -->
-                <div class="overflow-x-auto hidden md:block">
-                    <table class="w-full text-sm" style="min-width: 1300px;">
-                        <thead>
-                            <tr class="border-b border-slate-200 bg-slate-50/50">
-                                <th class="text-left px-6 py-3 font-semibold text-[11px] text-slate-500 tracking-widest uppercase whitespace-nowrap">Código</th>
-                                <th class="text-left px-6 py-3 font-semibold text-[11px] text-slate-500 tracking-widest uppercase whitespace-nowrap">Año</th>
-                                <th class="text-left px-6 py-3 font-semibold text-[11px] text-slate-500 tracking-widest uppercase whitespace-nowrap">Mes</th>
-                                <th class="text-left px-6 py-3 font-semibold text-[11px] text-slate-500 tracking-widest uppercase whitespace-nowrap">Área</th>
-                                <th class="text-left px-6 py-3 font-semibold text-[11px] text-slate-500 tracking-widest uppercase whitespace-nowrap">Estado</th>
-                                <th class="text-center px-6 py-3 font-semibold text-[11px] text-slate-500 tracking-widest uppercase whitespace-nowrap">Fotos</th>
-                                <th class="text-left px-6 py-3 font-semibold text-[11px] text-slate-500 tracking-widest uppercase">Acontecimiento</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-body" class="divide-y divide-slate-100">
-                            <tr><td colspan="7" class="text-center py-12 text-slate-400 text-sm">Cargando hallazgos...</td></tr>
-                        </tbody>
-                    </table>
+                <!-- Botones de mes -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm">
+                    <div class="flex flex-wrap gap-2" id="meses-actos"></div>
                 </div>
 
-                <!-- VISTA MÓVIL: tarjetas -->
-                <div id="tabla-cards" class="md:hidden divide-y divide-slate-100">
-                    <div class="text-center py-12 text-slate-400 text-sm">Cargando hallazgos...</div>
+                <!-- Grilla de tarjetas -->
+                <div id="grid-actos" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+                    <div class="col-span-full text-center py-12 text-slate-400 text-sm">Cargando actos…</div>
                 </div>
 
-                <div class="px-3 sm:px-6 py-3 sm:py-4 border-t border-slate-100 flex justify-between items-center bg-slate-50/30">
-                    <button id="btn-prev" class="text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 hover:border-slate-300 rounded-lg px-2.5 sm:px-3 py-1.5 transition disabled:opacity-40 disabled:cursor-not-allowed bg-white">← Anterior</button>
-                    <span class="text-[11px] sm:text-xs text-slate-500 font-medium">Página <span id="pagina-actual" class="text-slate-800 font-semibold">1</span> de <span id="total-paginas" class="text-slate-800 font-semibold">1</span></span>
-                    <button id="btn-next" class="text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 hover:border-slate-300 rounded-lg px-2.5 sm:px-3 py-1.5 transition disabled:opacity-40 disabled:cursor-not-allowed bg-white">Siguiente →</button>
-                </div>
             </div>
 
         </main>
     </div>
 
     <!-- ==================== MODAL DE FOTOS ==================== -->
-    <div id="modal-fotos-hallazgo" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+    <div id="modal-fotos-hallazgo" tabindex="-1" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4 outline-none">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
             <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
                 <div class="min-w-0">
@@ -465,25 +565,46 @@
             </div>
             <div class="px-5 py-4 overflow-y-auto flex-1">
                 <div id="fotos-hallazgo-toolbar" class="mb-4 hidden">
-    <div class="flex items-center gap-3 flex-wrap">
-        <button id="btn-subir-foto-hallazgo" type="button"
-            class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition shadow-md">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-            </svg>
-            Subir foto
-        </button>
-        <span class="text-xs text-slate-400 flex items-center gap-1">
-            o pega con
-            <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-200 rounded text-[10px] font-mono">Ctrl</kbd>
-            <span class="text-slate-300">+</span>
-            <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-200 rounded text-[10px] font-mono">V</kbd>
-        </span>
-    </div>
-    <input type="file" id="foto-hallazgo-input" accept="image/*" class="hidden" multiple>
-</div>
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <button id="btn-subir-foto-hallazgo" type="button"
+                            class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition shadow-md">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                            </svg>
+                            Subir foto
+                        </button>
+                        <span class="text-xs text-slate-400 flex items-center gap-1">
+                            o pega con
+                            <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-200 rounded text-[10px] font-mono">Ctrl</kbd>
+                            <span class="text-slate-300">+</span>
+                            <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-200 rounded text-[10px] font-mono">V</kbd>
+                        </span>
+                    </div>
+                    <input type="file" id="foto-hallazgo-input" accept="image/*" class="hidden" multiple>
+                </div>
                 <div id="fotos-hallazgo-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL EDITAR TEXTO DE ACTO ==================== -->
+    <div id="modal-editar-acto" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[150] hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+                <h3 class="text-base font-bold text-slate-900">Editar descripción del acto</h3>
+                <button onclick="cerrarModalEditarActo()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none p-1">×</button>
+            </div>
+            <div class="px-5 py-4">
+                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">Descripción</label>
+                <textarea id="editar-acto-texto" rows="4"
+                    placeholder="Describe brevemente el acto subestándar..."
+                    class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-vertical"></textarea>
+                <p class="text-[10px] text-slate-400 mt-2">Este texto aparece en la tarjeta del acto. No modifica el campo "Acontecimiento" original.</p>
+            </div>
+            <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
+                <button onclick="cerrarModalEditarActo()" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition">Cancelar</button>
+                <button id="btn-guardar-acto" class="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition">Guardar</button>
             </div>
         </div>
     </div>
@@ -496,6 +617,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-    <script src="app.js"></script>
+    <script src="app.js?v=4"></script>
 </body>
 </html>
