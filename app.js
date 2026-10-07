@@ -20,6 +20,7 @@ let vistaActual = 'hallazgos';
 let subVistaActos = 'indicadores';
 // Mes seleccionado en Actos Inseguros (1-12)
 let mesActosSeleccionado = new Date().getMonth() + 1;
+let anioActosSeleccionado = 2026;
 
 const EVENTOS_DISPONIBLES = [
     { valor: 'Acto Subestandar',      etiqueta: 'Acto Subestándar'      },
@@ -350,6 +351,7 @@ async function iniciarDashboard() {
 
     renderizarBotonesEvento();
     renderizarBotonesEstado();
+    renderizarBotonesAnioActos();
     renderizarBotonesMesActos();
 
     await cargarFiltros();
@@ -360,6 +362,7 @@ async function iniciarDashboard() {
     await cargarCatalogoFaltas();
 
     suscribirRealtimeFotosHallazgos();
+    suscribirRealtimeMedidaFotos();
 }
 
 async function aplicarRestriccionesUsuario() {
@@ -488,7 +491,36 @@ function renderizarBotonesEstado() {
         });
     });
 }
+function renderizarBotonesAnioActos() {
+    const cont = document.getElementById('anios-actos');
+    if (!cont) return;
 
+    const anios = [2025, 2026];
+    cont.innerHTML = '';
+
+    anios.forEach(anio => {
+        const activo = anioActosSeleccionado === anio;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tab-btn ' + (activo ? 'tab-btn-active' : '');
+        btn.dataset.anio = anio;
+        btn.textContent = anio;
+        btn.addEventListener('click', () => {
+            if (anioActosSeleccionado === anio) return;
+            anioActosSeleccionado = anio;
+            // Resetear mes al actual si cambias a un año que no tiene ese mes
+            const hoy = new Date();
+            const anioHoy = hoy.getFullYear();
+            const mesHoy  = hoy.getMonth() + 1;
+            const mesMax = anioActosSeleccionado === anioHoy ? mesHoy : 12;
+            if (mesActosSeleccionado > mesMax) mesActosSeleccionado = mesMax;
+            renderizarBotonesAnioActos();
+            renderizarBotonesMesActos();
+            cargarActosInseguros();
+        });
+        cont.appendChild(btn);
+    });
+}
 // ==========================================
 // 6b. BOTONES DE MES (Actos Inseguros)
 // ==========================================
@@ -501,10 +533,11 @@ function renderizarBotonesMesActos() {
     const mesHoy  = hoy.getMonth() + 1;
 
     let mesLimite = 12;
-    if (anioHoy === ANIO_ACTOS) mesLimite = mesHoy;
-    else if (anioHoy > ANIO_ACTOS) mesLimite = 12;
+    if (anioActosSeleccionado === anioHoy) mesLimite = mesHoy;
+    else if (anioActosSeleccionado > anioHoy) mesLimite = 0;   // año futuro → sin meses
+    // año pasado → 12
 
-    if (mesActosSeleccionado > mesLimite) mesActosSeleccionado = mesHoy;
+    if (mesActosSeleccionado > mesLimite) mesActosSeleccionado = mesLimite || mesHoy;
 
     cont.innerHTML = '';
     for (let i = 1; i <= mesLimite; i++) {
@@ -1746,9 +1779,9 @@ async function cargarActosDelMes(mes) {
     }
 
     actosDelMesCache = actosTodosCache.filter(a => {
-        const { anio, mes: m } = parsearFechaHallazgo(a.FECHA_ACONTECIMIENTO);
-        return anio === String(ANIO_ACTOS) && m === mes;
-    });
+    const { anio, mes: m } = parsearFechaHallazgo(a.FECHA_ACONTECIMIENTO);
+    return anio === String(anioActosSeleccionado) && m === mes;
+});
 
     const ids = actosDelMesCache.map(a => a.COD_HALLAZGO).filter(Boolean);
     if (ids.length > 0) await cargarImagenesHallazgos(ids);
@@ -1761,7 +1794,7 @@ function renderGridActos() {
     if (!cont) return;
 
     if (actosDelMesCache.length === 0) {
-        cont.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400 text-sm">No hay actos inseguros registrados en ${nombreMes(mesActosSeleccionado)} ${ANIO_ACTOS}.</div>`;
+        cont.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400 text-sm">No hay actos inseguros registrados en ${nombreMes(mesActosSeleccionado)} ${anioActosSeleccionado}.</div>`;
         return;
     }
 
@@ -2117,12 +2150,15 @@ function renderRankingFaltas(ranking) {
     }
 
     const total = ranking.reduce((acc, r) => acc + r.cantidad, 0);
-    if (sub) sub.textContent = `${total} etiqueta${total !== 1 ? 's' : ''} en ${ranking.length} falta${ranking.length !== 1 ? 's' : ''} distinta${ranking.length !== 1 ? 's' : ''}`;
+    if (sub) sub.textContent = `${total} etiqueta${total !== 1 ? 's' : ''} en ${ranking.length} falta${ranking.length !== 1 ? 's' : ''} distinta${ranking.length !== 1 ? 's' : ''} · Clic en una falta para ver/editar su medida de acción`;
 
     tbody.innerHTML = ranking.map((r, i) => {
         const pct = total > 0 ? (r.cantidad / total) * 100 : 0;
         return `
-            <tr class="hover:bg-slate-50">
+            <tr class="hover:bg-emerald-50/40 cursor-pointer transition"
+                data-falta-id="${r.falta_id}"
+                data-falta-nombre="${escaparAttr(r.nombre)}"
+                data-falta-cant="${r.cantidad}">
                 <td class="px-4 py-3 text-slate-500 font-semibold">${i + 1}</td>
                 <td class="px-4 py-3 text-slate-800 font-medium">${escaparHTML(r.nombre)}</td>
                 <td class="px-4 py-3 text-center font-bold text-slate-900">${r.cantidad}</td>
@@ -2135,9 +2171,272 @@ function renderRankingFaltas(ranking) {
             </tr>
         `;
     }).join('');
+
+    tbody.querySelectorAll('tr[data-falta-id]').forEach(tr => {
+        tr.addEventListener('click', () => {
+            abrirModalMedidaAccion(
+                parseInt(tr.dataset.faltaId),
+                tr.dataset.faltaNombre,
+                parseInt(tr.dataset.faltaCant)
+            );
+        });
+    });
 }
 
 // ==========================================
 // INICIO
 // ==========================================
+// ==========================================
+// 19. MEDIDA DE ACCIÓN POR FALTA
+// ==========================================
+let medidaAccionCtx = { faltaId: null, faltaNombre: '', cantidad: 0 };
+let medidaFotosCache = [];   // fotos del falta actualmente en el modal
+let realtimeMedidaFotosActivo = false;
+
+function urlFotoMedida(path) {
+    const { data } = supabaseClient.storage.from('medidas-accion').getPublicUrl(path);
+    return data.publicUrl;
+}
+
+// -------- ABRIR / CERRAR --------
+async function abrirModalMedidaAccion(faltaId, faltaNombre, cantidad) {
+    medidaAccionCtx = { faltaId, faltaNombre, cantidad };
+
+    document.getElementById('modal-medida-titulo').textContent = faltaNombre;
+    document.getElementById('modal-medida-sub').textContent =
+        cantidad === 1 ? '1 incidencia en 2026' : `${cantidad} incidencias en 2026`;
+
+    const m = document.getElementById('modal-medida-accion');
+    m.classList.remove('hidden');
+    m.classList.add('flex');
+
+    // Adaptar UI al rol
+    const admin = esAdminReal();
+    const ta = document.getElementById('medida-accion-texto');
+    const btnGuardar = document.getElementById('btn-guardar-medida');
+    const btnSubir = document.getElementById('btn-subir-medida-foto');
+
+    ta.readOnly = !admin;
+    ta.classList.toggle('bg-slate-100', !admin);
+    ta.classList.toggle('cursor-not-allowed', !admin);
+    btnGuardar.classList.toggle('hidden', !admin);
+    btnSubir.classList.toggle('hidden', !admin);
+
+    // Cargar contenido
+    await cargarMedidaAccion(faltaId);
+}
+
+function cerrarModalMedidaAccion() {
+    const m = document.getElementById('modal-medida-accion');
+    m.classList.add('hidden');
+    m.classList.remove('flex');
+    medidaAccionCtx = { faltaId: null, faltaNombre: '', cantidad: 0 };
+    medidaFotosCache = [];
+}
+
+// -------- CARGAR --------
+async function cargarMedidaAccion(faltaId) {
+    // Texto
+    const { data: catalogo, error: errCat } = await supabaseClient
+        .from('catalogo_faltas')
+        .select('medida_accion')
+        .eq('id', faltaId)
+        .maybeSingle();
+
+    if (errCat) console.error(errCat);
+    const texto = catalogo?.medida_accion || '';
+    document.getElementById('medida-accion-texto').value = texto;
+    document.getElementById('medida-accion-vacio').classList.toggle('hidden', !!texto);
+
+    // Fotos
+    await cargarFotosMedida(faltaId);
+    renderMedidaFotos();
+}
+
+async function cargarFotosMedida(faltaId) {
+    const { data, error } = await supabaseClient
+        .from('medida_accion_fotos')
+        .select('id, falta_id, nombre, storage_path, subido_por, created_at')
+        .eq('falta_id', faltaId)
+        .order('created_at', { ascending: false });
+
+    if (error) { console.error(error); medidaFotosCache = []; return; }
+    medidaFotosCache = data || [];
+}
+
+// -------- RENDER --------
+function renderMedidaFotos() {
+    const cont = document.getElementById('medida-fotos-grid');
+    if (!cont) return;
+
+    if (medidaFotosCache.length === 0) {
+        cont.innerHTML = `<p class="col-span-full text-xs text-slate-400 italic">Sin evidencia fotográfica.</p>`;
+        return;
+    }
+
+    const admin = esAdminReal();
+    cont.innerHTML = '';
+    medidaFotosCache.forEach((f, idx) => {
+        const url = urlFotoMedida(f.storage_path);
+        const item = document.createElement('div');
+        item.className = 'relative aspect-square rounded-xl overflow-hidden bg-slate-100 group';
+        item.innerHTML = `
+            <img src="${url}"
+                 alt="${escaparAttr(f.nombre)}"
+                 loading="${idx === 0 ? 'eager' : 'lazy'}"
+                 decoding="async"
+                 class="w-full h-full object-cover cursor-zoom-in transition group-hover:scale-105"
+                 data-medida-lightbox-url="${escaparAttr(url)}">
+            ${admin ? `
+                <button type="button"
+                        class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-slate-900/70 hover:bg-red-600 text-white flex items-center justify-center text-[10px] backdrop-blur-sm transition"
+                        data-medida-delete-id="${escaparAttr(f.id)}"
+                        data-medida-delete-path="${escaparAttr(f.storage_path)}"
+                        title="Eliminar">✕</button>
+            ` : ''}
+        `;
+        cont.appendChild(item);
+    });
+}
+
+// Delegación de clicks en el grid
+document.getElementById('medida-fotos-grid').addEventListener('click', (e) => {
+    const img = e.target.closest('img[data-medida-lightbox-url]');
+    if (img) return abrirLightboxHallazgo(img.dataset.medidaLightboxUrl);
+    const btn = e.target.closest('button[data-medida-delete-id]');
+    if (btn) return eliminarFotoMedida(btn.dataset.medidaDeleteId, btn.dataset.medidaDeletePath);
+});
+
+// -------- GUARDAR TEXTO --------
+document.getElementById('btn-guardar-medida').addEventListener('click', async () => {
+    if (!esAdminReal()) return;
+    const faltaId = medidaAccionCtx.faltaId;
+    if (!faltaId) return;
+
+    const texto = document.getElementById('medida-accion-texto').value.trim();
+
+    const { error } = await supabaseClient
+        .from('catalogo_faltas')
+        .update({ medida_accion: texto || null })
+        .eq('id', faltaId);
+
+    if (error) { console.error(error); alert('No se pudo guardar la medida.'); return; }
+
+    document.getElementById('medida-accion-vacio').classList.toggle('hidden', !!texto);
+    cerrarModalMedidaAccion();
+});
+
+// -------- SUBIR FOTO --------
+document.getElementById('btn-subir-medida-foto').addEventListener('click', () => {
+    if (!esAdminReal()) return;
+    document.getElementById('medida-foto-input').click();
+});
+
+document.getElementById('medida-foto-input').addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    for (const f of files) await subirArchivoMedidaFoto(f);
+});
+
+async function subirArchivoMedidaFoto(file) {
+    if (!esAdminReal()) return;
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { alert('Solo se permiten imágenes.'); return; }
+
+    const faltaId = medidaAccionCtx.faltaId;
+    if (!faltaId) return;
+
+    const btn = document.getElementById('btn-subir-medida-foto');
+    const original = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = 'Subiendo…';
+
+    try {
+        const blob = await comprimirImagenHallazgo(file);
+        const path = `falta-${faltaId}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.jpg`;
+
+        const { error: errUp } = await supabaseClient.storage
+            .from('medidas-accion')
+            .upload(path, blob, { cacheControl: '31536000', upsert: false, contentType: 'image/jpeg' });
+        if (errUp) throw errUp;
+
+        const { error: errIns } = await supabaseClient
+            .from('medida_accion_fotos')
+            .insert({
+                falta_id: faltaId,
+                nombre: file.name || `pegada-${Date.now()}.jpg`,
+                storage_path: path,
+                subido_por: usuarioActual?.nombre || null
+            });
+
+        if (errIns) {
+            await supabaseClient.storage.from('medidas-accion').remove([path]);
+            throw errIns;
+        }
+
+        await cargarFotosMedida(faltaId);
+        renderMedidaFotos();
+
+    } catch (err) {
+        console.error(err);
+        alert('No se pudo subir la foto.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = original;
+    }
+}
+
+// Paste con Ctrl+V (solo cuando el modal está abierto)
+document.addEventListener('paste', async (e) => {
+    const modal = document.getElementById('modal-medida-accion');
+    if (!modal || modal.classList.contains('hidden')) return;
+    if (!esAdminReal()) return;
+    if (!medidaAccionCtx.faltaId) return;
+
+    const items = (e.clipboardData && e.clipboardData.items) || [];
+    const files = [];
+    for (const it of items) {
+        if (it.kind === 'file' && it.type.startsWith('image/')) {
+            const f = it.getAsFile();
+            if (f) files.push(f);
+        }
+    }
+    if (files.length === 0) return;
+    e.preventDefault();
+    for (const f of files) await subirArchivoMedidaFoto(f);
+});
+
+// -------- ELIMINAR FOTO --------
+async function eliminarFotoMedida(fotoId, storagePath) {
+    if (!esAdminReal()) return;
+    if (!confirm('¿Eliminar esta foto?')) return;
+
+    const { error: errDel } = await supabaseClient.storage
+        .from('medidas-accion').remove([storagePath]);
+    if (errDel) { console.error(errDel); alert('No se pudo eliminar el archivo.'); return; }
+
+    await supabaseClient.from('medida_accion_fotos').delete().eq('id', fotoId);
+    await cargarFotosMedida(medidaAccionCtx.faltaId);
+    renderMedidaFotos();
+}
+
+// -------- REALTIME --------
+function suscribirRealtimeMedidaFotos() {
+    if (realtimeMedidaFotosActivo) return;
+    realtimeMedidaFotosActivo = true;
+
+    supabaseClient
+        .channel('medida_accion_fotos_rt')
+        .on('postgres_changes',
+            { event: '*', schema: 'public', table: 'medida_accion_fotos' },
+            async (payload) => {
+                const faltaAfectada = payload.new?.falta_id || payload.old?.falta_id;
+                if (!faltaAfectada) return;
+                if (faltaAfectada === medidaAccionCtx.faltaId) {
+                    await cargarFotosMedida(faltaAfectada);
+                    renderMedidaFotos();
+                }
+            })
+        .subscribe();
+}
 init();
