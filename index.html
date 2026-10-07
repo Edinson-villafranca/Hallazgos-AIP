@@ -544,11 +544,17 @@
                         </div>
                     </div>
 
-                    <!-- Botones de mes -->
-                    <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm">
-                        <div class="flex flex-wrap gap-2" id="meses-actos"></div>
-                    </div>
-
+                   <!-- Botones de año + mes -->
+<div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm space-y-4">
+    <div>
+        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2">Año</label>
+        <div class="flex flex-wrap gap-2" id="anios-actos"></div>
+    </div>
+    <div>
+        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2">Mes</label>
+        <div class="flex flex-wrap gap-2" id="meses-actos"></div>
+    </div>
+</div>
                     <!-- Grilla de tarjetas -->
                     <div id="grid-actos" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
                         <div class="col-span-full text-center py-12 text-slate-400 text-sm">Cargando actos…</div>
@@ -657,7 +663,45 @@
             </div>
         </div>
     </div>
+<!-- ==================== MODAL: MEDIDA DE ACCIÓN ==================== -->
+<div id="modal-medida-accion" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[160] hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+            <div class="min-w-0">
+                <h3 id="modal-medida-titulo" class="text-base font-bold text-slate-900 truncate">Medida de acción</h3>
+                <p id="modal-medida-sub" class="text-xs text-slate-500 mt-0.5">—</p>
+            </div>
+            <button onclick="cerrarModalMedidaAccion()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none p-1">×</button>
+        </div>
+        <div class="px-5 py-4 overflow-y-auto flex-1">
+            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">Medida de acción</label>
+            <textarea id="medida-accion-texto" rows="4"
+                placeholder="Describe qué acciones tomamos para reducir esta falta…"
+                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-vertical"></textarea>
+            <p id="medida-accion-vacio" class="text-xs text-slate-400 italic mt-2 hidden">Sin medida registrada todavía.</p>
 
+            <div class="mt-5 pt-5 border-t border-slate-200">
+                <div class="flex items-center justify-between mb-2 gap-3 flex-wrap">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Evidencia fotográfica</label>
+                    <button id="btn-subir-medida-foto" type="button"
+                        class="hidden inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm transition">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Subir foto
+                    </button>
+                    <input type="file" id="medida-foto-input" accept="image/*" class="hidden" multiple>
+                </div>
+                <p class="text-[10px] text-slate-400 mb-3">Pega con <kbd class="px-1 bg-slate-100 border border-slate-200 rounded text-[10px] font-mono">Ctrl</kbd> + <kbd class="px-1 bg-slate-100 border border-slate-200 rounded text-[10px] font-mono">V</kbd> para subir varias de una vez.</p>
+                <div id="medida-fotos-grid" class="grid grid-cols-3 sm:grid-cols-4 gap-2"></div>
+            </div>
+        </div>
+        <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
+            <button onclick="cerrarModalMedidaAccion()" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition">Cerrar</button>
+            <button id="btn-guardar-medida" class="hidden px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition">Guardar</button>
+        </div>
+    </div>
+</div>
     <!-- ==================== LIGHTBOX ==================== -->
     <div id="lightbox-hallazgo" class="fixed inset-0 bg-black/90 z-[200] hidden items-center justify-center p-6 cursor-zoom-out">
         <img id="lightbox-hallazgo-img" src="" alt="" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl">
