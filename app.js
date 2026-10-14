@@ -1114,7 +1114,10 @@ async function cargarTabla() {
                     <td class="px-6 py-4 font-semibold text-slate-800 text-xs whitespace-nowrap">${h.COD_HALLAZGO || '-'}</td>
                     <td class="px-6 py-4 text-slate-600 text-xs whitespace-nowrap">${anioStr}</td>
                     <td class="px-6 py-4 text-slate-600 text-xs whitespace-nowrap">${mesStr}</td>
-                    <td class="px-6 py-4 text-slate-700 text-xs font-medium whitespace-nowrap">${escaparHTML(h.USR_REASIGNADO || h.USR_RESPONSABLE || '') || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                    <p class="text-slate-700 text-xs font-medium leading-tight">${escaparHTML(embellecer(h.DESC_SECCION)) || '-'}</p>
+                    <p class="text-slate-500 text-[11px] leading-tight mt-0.5">${escaparHTML(h.USR_REASIGNADO || h.USR_RESPONSABLE || '') || ''}</p>
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap">${generarBadge(h.ESTADO)}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-center">${botonFotosHallazgoHTML(h.COD_HALLAZGO)}</td>
                     <td class="px-6 py-4 text-slate-600 text-xs">${h.ACONTECIMIENTO || '-'}</td>
@@ -1135,9 +1138,12 @@ async function cargarTabla() {
                         <span><strong class="text-slate-700 font-semibold">Año:</strong> ${anioStr || '-'}</span>
                         <span><strong class="text-slate-700 font-semibold">Mes:</strong> ${mesStr || '-'}</span>
                     </div>
-                    <p class="text-xs text-slate-700">
-                    <strong class="text-slate-700 font-semibold">Reasignado:</strong> ${escaparHTML(h.USR_REASIGNADO || h.USR_RESPONSABLE || '') || '-'}
-                    </p>
+                    <div class="text-xs leading-tight">
+    <p class="text-slate-700">
+        <strong class="text-slate-700 font-semibold">Área:</strong> ${escaparHTML(embellecer(h.DESC_SECCION)) || '-'}
+    </p>
+    <p class="text-slate-500 text-[11px] mt-0.5 pl-0.5">${escaparHTML(h.USR_REASIGNADO || h.USR_RESPONSABLE || '') || ''}</p>
+</div>
                     <p class="text-xs text-slate-600 leading-relaxed pt-2 border-t border-slate-100 mt-2">
                         ${h.ACONTECIMIENTO || '-'}
                     </p>
